@@ -10,7 +10,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Myanmar:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
+  .leaflet-container{font-family:inherit}
   body{font-family:'Noto Sans Myanmar',sans-serif;background:#e2e8f0;-webkit-tap-highlight-color:transparent;line-height:1.7}
   @keyframes pulse-ring{0%{transform:scale(.92);box-shadow:0 0 0 0 rgba(220,38,38,.7)}70%{transform:scale(1);box-shadow:0 0 0 22px rgba(220,38,38,0)}100%{transform:scale(.92);box-shadow:0 0 0 0 rgba(220,38,38,0)}}
   .sos-pulse{animation:pulse-ring 2s infinite}
@@ -100,6 +103,7 @@
           <div>
             <div class="flex items-center justify-between"><label class="text-xs font-semibold" for="f-loc">တည်နေရာ / လိပ်စာ</label>
               <button type="button" onclick="getGPS(8000,true)" class="text-[11px] font-bold text-blue-600 flex items-center gap-1"><i class="fa-solid fa-location-crosshairs"></i>GPS ရယူရန်</button></div>
+            <button type="button" onclick="openPicker('incident')" class="w-full mt-1 mb-1 bg-blue-50 text-blue-700 text-[11px] font-bold py-2 rounded-xl border border-blue-100"><i class="fa-solid fa-map-pin mr-1"></i>မြေပုံပေါ်တွင် နေရာရွေးရန်</button>
             <input id="f-loc" type="text" placeholder="ဥပမာ - ပြည်တော်သာလမ်း၊ မကွေးမြို့" class="inp">
             <p id="gps-ok" class="hidden text-[10px] text-emerald-600 font-medium mt-1"></p>
           </div>
@@ -128,6 +132,17 @@
       <a id="svc-call" href="#" class="block bg-red-600 text-white text-center font-bold text-sm py-3 rounded-2xl shadow-md active:scale-[.98]"><i class="fa-solid fa-phone mr-2"></i>ဝန်ဆောင်မှုတောင်းရန် ဖုန်းခေါ်မည်</a>
     </section>
 
+    <!-- MAP -->
+    <section id="tab-map" class="tab-content hidden p-4 space-y-3">
+      <div class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100">
+        <h2 class="text-base font-bold">အသင်းများ၏ တည်နေရာ မြေပုံ</h2>
+        <p class="text-xs text-slate-500">အနီးဆုံးရုံးကို ရှာပြီး လမ်းညွှန်ကြည့်နိုင်ပါသည်</p>
+        <div id="map-main" class="w-full h-72 rounded-2xl mt-3 border border-slate-200 z-0"></div>
+        <button onclick="locateOnMap()" class="w-full mt-3 bg-blue-600 text-white text-xs font-bold py-2.5 rounded-xl"><i class="fa-solid fa-location-crosshairs mr-1"></i>ကျွန်ုပ်၏ တည်နေရာ ပြရန်</button>
+      </div>
+      <div id="map-list" class="space-y-2.5"></div>
+    </section>
+
     <!-- FIRST AID -->
     <section id="tab-aid" class="tab-content hidden p-4 space-y-3">
       <div class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100">
@@ -149,12 +164,29 @@
   </main>
 
   <!-- BOTTOM NAV -->
-  <nav class="absolute bottom-0 inset-x-0 bg-white border-t border-slate-200 z-30 grid grid-cols-4 pb-1">
+  <nav class="absolute bottom-0 inset-x-0 bg-white border-t border-slate-200 z-30 grid grid-cols-5 pb-1">
     <button class="nav-btn active flex flex-col items-center py-2 text-slate-400" data-tab="home"><i class="fa-solid fa-house text-lg"></i><span class="text-[10px] font-semibold mt-0.5">ပင်မ</span></button>
     <button class="nav-btn flex flex-col items-center py-2 text-slate-400" data-tab="services"><i class="fa-solid fa-hand-holding-heart text-lg"></i><span class="text-[10px] font-semibold mt-0.5">ဝန်ဆောင်မှု</span></button>
+    <button class="nav-btn flex flex-col items-center py-2 text-slate-400" data-tab="map"><i class="fa-solid fa-map-location-dot text-lg"></i><span class="text-[10px] font-semibold mt-0.5">မြေပုံ</span></button>
     <button class="nav-btn flex flex-col items-center py-2 text-slate-400" data-tab="aid"><i class="fa-solid fa-kit-medical text-lg"></i><span class="text-[10px] font-semibold mt-0.5">ရှေးဦး</span></button>
     <button class="nav-btn flex flex-col items-center py-2 text-slate-400" data-tab="contacts"><i class="fa-solid fa-address-book text-lg"></i><span class="text-[10px] font-semibold mt-0.5">ဖုန်းစာရင်း</span></button>
   </nav>
+
+  <!-- MAP PICKER -->
+  <div id="pick-ov" class="hidden absolute inset-0 z-[55] bg-white flex flex-col">
+    <div class="bg-slate-800 text-white px-4 py-3 flex items-center justify-between shrink-0">
+      <span id="pick-title" class="text-sm font-bold">မြေပုံပေါ်တွင် နေရာရွေးပါ</span>
+      <button onclick="closePicker()" class="w-8 h-8 rounded-full bg-white/15"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div id="pick-map" class="flex-1 z-0"></div>
+    <div class="p-3 bg-white border-t border-slate-200 shrink-0 space-y-2">
+      <p class="text-[11px] text-slate-500 text-center">မြေပုံကို ထိ၍ နေရာရွေးပါ သို့မဟုတ် pin ကို ဆွဲရွှေ့ပါ</p>
+      <div class="grid grid-cols-2 gap-2">
+        <button onclick="pickMyLoc()" class="bg-blue-600 text-white text-xs font-bold py-2.5 rounded-xl"><i class="fa-solid fa-location-crosshairs mr-1"></i>ကျွန်ုပ်နေရာ</button>
+        <button onclick="confirmPick()" class="bg-red-600 text-white text-xs font-bold py-2.5 rounded-xl"><i class="fa-solid fa-check mr-1"></i>အတည်ပြုမည်</button>
+      </div>
+    </div>
+  </div>
 
   <!-- SOS OVERLAY -->
   <div id="sos-ov" class="hidden absolute inset-0 z-50 bg-red-700/95 text-white flex flex-col items-center justify-center text-center p-6">
@@ -206,6 +238,9 @@
           <label class="lbl">အသင်းအမည်</label><input id="af-name" class="inp">
           <label class="lbl">ဒေသ / ဖော်ပြချက်</label><input id="af-sub" class="inp">
           <label class="lbl">ဖုန်းနံပါတ် (ဟော့လိုင်း)</label><input id="af-phone" type="tel" class="inp">
+          <label class="lbl">ရုံး တည်နေရာ (မြေပုံအတွက်)</label>
+          <div class="grid grid-cols-2 gap-2"><input id="af-lat" class="inp" placeholder="လတ္တီတွဒ် 20.1496"><input id="af-lng" class="inp" placeholder="လောင်ဂျီတွဒ် 94.9325"></div>
+          <button type="button" onclick="openPicker('assoc')" class="w-full mt-1.5 bg-blue-50 text-blue-700 text-[11px] font-bold py-2 rounded-xl border border-blue-100"><i class="fa-solid fa-map-pin mr-1"></i>မြေပုံပေါ်တွင် ရွေးရန်</button>
           <label class="lbl">Telegram Chat ID (ရုံးသို့ တိုက်ရိုက်လက်ခံမည့် group/user)</label><input id="af-chat" class="inp" placeholder="ဥပမာ - -1001234567890">
           <div class="grid grid-cols-2 gap-2 mt-3">
             <button onclick="saveAssoc()" class="bg-red-600 text-white text-xs font-bold py-2.5 rounded-xl">သိမ်းမည်</button>
@@ -227,7 +262,15 @@
 
         <!-- Config sync -->
         <h4 class="text-xs font-bold text-red-700 mt-5 mb-1"><i class="fa-solid fa-cloud-arrow-down mr-1"></i>၄။ ဆက်တင် မျှဝေခြင်း</h4>
-        <label class="lbl">Remote Config URL (အသုံးပြုသူအားလုံးဖုန်းတွင် အလိုအလျောက် Update ဖြစ်စေရန်)</label><input id="a-remote" class="inp" placeholder="https://.../config.json">
+        <div class="p-3 bg-orange-50 border border-orange-200 rounded-2xl">
+          <p class="text-[11px] font-bold text-orange-800">Firebase ဖြင့် အသုံးပြုသူအားလုံးသို့ ချက်ချင်းပို့ရန်</p>
+          <label class="lbl">Database URL</label><input id="a-fburl" class="inp" placeholder="https://xxxx-default-rtdb.firebaseio.com">
+          <label class="lbl">Web API Key</label><input id="a-fbkey" class="inp" placeholder="AIza...">
+          <label class="lbl">Admin Email</label><input id="a-fbmail" type="email" class="inp" autocomplete="off">
+          <label class="lbl">Admin Password (မသိမ်းပါ)</label><input id="a-fbpass" type="password" class="inp" autocomplete="off">
+          <button onclick="publishFB()" class="w-full mt-2 bg-orange-600 text-white text-xs font-bold py-2.5 rounded-xl"><i class="fa-solid fa-cloud-arrow-up mr-1"></i>အားလုံးသို့ ပို့မည် (Publish)</button>
+        </div>
+        <label class="lbl">Remote Config URL (JSON ဖိုင်နည်း - Firebase မသုံးလျှင်)</label><input id="a-remote" class="inp" placeholder="https://.../config.json">
         <div class="grid grid-cols-2 gap-2 mt-2">
           <button onclick="exportCfg()" class="bg-slate-800 text-white text-xs font-bold py-2.5 rounded-xl">Export (JSON)</button>
           <button onclick="importCfg()" class="bg-slate-200 text-slate-700 text-xs font-bold py-2.5 rounded-xl">Import</button>
@@ -252,8 +295,10 @@ const DEFAULTS = {
   tgToken: '',
   hook: '',
   remoteUrl: '',
+  fbUrl: '',
+  fbKey: '',
   mainId: 'main',
-  assocs: [{id:'main', name:'ရောင်စုံမေတ္တာ ကယ်ဆယ်ရေး', sub:'မကွေးမြို့နှင့် အနီးတစ်ဝိုက်', phone:'09400192192', chatId:'', logo:''}]
+  assocs: [{id:'main', name:'ရောင်စုံမေတ္တာ ကယ်ဆယ်ရေး', sub:'မကွေးမြို့နှင့် အနီးတစ်ဝိုက်', phone:'09400192192', chatId:'', logo:'', lat:20.1496, lng:94.9325}]
 };
 const clone = o => JSON.parse(JSON.stringify(o));
 let cfg = clone(DEFAULTS);
@@ -331,6 +376,7 @@ function applyCfg(){
   sel.value = targetId;
   $('target-wrap').classList.toggle('hidden', cfg.assocs.length < 2);
   renderContacts();
+  if (typeof refreshMarkers === 'function') { renderMapList(); refreshMarkers(); }
 }
 const COLORS = {red:'bg-red-50 text-red-600', sky:'bg-sky-50 text-sky-600', emerald:'bg-emerald-50 text-emerald-600', orange:'bg-orange-50 text-orange-600', blue:'bg-blue-50 text-blue-600', cyan:'bg-cyan-50 text-cyan-600'};
 $('svc-list').innerHTML = SERVICES.map(s => `
@@ -368,9 +414,10 @@ function renderContacts(){
 
 /* ================= Tabs & incident ================= */
 function showTab(t){
-  ['home','services','aid','contacts'].forEach(x => $('tab-' + x).classList.toggle('hidden', x !== t));
+  ['home','services','map','aid','contacts'].forEach(x => $('tab-' + x).classList.toggle('hidden', x !== t));
   document.querySelectorAll('.nav-btn').forEach(b => { const on = b.dataset.tab === t; b.classList.toggle('active', on); b.classList.toggle('text-slate-400', !on); });
   $('main').scrollTop = 0;
+  if (t === 'map') initMapTab();
 }
 document.querySelectorAll('.nav-btn').forEach(b => b.addEventListener('click', () => showTab(b.dataset.tab)));
 let incident = 'အရေးပေါ်လူနာ';
@@ -404,7 +451,7 @@ function buildMsg(quick){
   const a = target();
   const loc = $('f-loc').value.trim(), phone = $('f-phone').value.trim(), count = $('f-count').value.trim(), note = $('f-note').value.trim();
   const L = ['🚨 SOS အရေးပေါ်အကူအညီတောင်းခံမှု', 'အသင်း: ' + a.name, 'အမျိုးအစား: ' + (quick && incident === 'အရေးပေါ်လူနာ' && !loc ? 'အရေးပေါ် (SOS ခလုတ်)' : incident), 'အချိန်: ' + nowStr()];
-  if (coords) L.push('📍 တည်နေရာ (GPS): ' + coords.lat.toFixed(6) + ', ' + coords.lng.toFixed(6) + ' (±' + coords.acc + 'မီတာ)', 'Map: ' + mapLink());
+  if (coords) L.push('📍 တည်နေရာ (GPS): ' + coords.lat.toFixed(6) + ', ' + coords.lng.toFixed(6) + ' (' + (coords.acc ? '±' + coords.acc + 'မီတာ' : 'မြေပုံတွင်ရွေးထား') + ')', 'Map: ' + mapLink());
   else L.push('📍 GPS မရရှိပါ');
   if (loc) L.push('လိပ်စာ: ' + loc);
   if (phone) L.push('ဆက်သွယ်ရန်: ' + phone);
@@ -499,7 +546,7 @@ function unlockAdmin(){
   if ($('a-pin').value !== cfg.pin){ toast('PIN မှားနေပါသည်', false); return; }
   $('admin-gate').classList.add('hidden'); $('admin-body').classList.remove('hidden');
   $('a-amb').value = cfg.ambulances; $('a-alert').value = cfg.alert; $('a-newpin').value = '';
-  $('a-tok').value = cfg.tgToken; $('a-hook').value = cfg.hook; $('a-remote').value = cfg.remoteUrl; $('a-json').value = '';
+  $('a-tok').value = cfg.tgToken; $('a-hook').value = cfg.hook; $('a-remote').value = cfg.remoteUrl; $('a-fburl').value = cfg.fbUrl; $('a-fbkey').value = cfg.fbKey; $('a-fbpass').value = ''; $('a-json').value = '';
   $('assoc-form').classList.add('hidden'); renderAssocAdmin();
 }
 function renderAssocAdmin(){
@@ -520,6 +567,7 @@ function editAssoc(id){
   editId = a ? a.id : null; editLogo = a ? (a.logo || '') : '';
   $('af-title').textContent = a ? 'အသင်းအချက်အလက် ပြင်ဆင်ရန်' : 'အသင်းအသစ် ထည့်ရန်';
   $('af-name').value = a ? a.name : ''; $('af-sub').value = a ? (a.sub || '') : ''; $('af-phone').value = a ? a.phone : ''; $('af-chat').value = a ? (a.chatId || '') : '';
+  $('af-lat').value = a && a.lat != null ? a.lat : ''; $('af-lng').value = a && a.lng != null ? a.lng : '';
   setAfLogo(); $('assoc-form').classList.remove('hidden'); $('assoc-form').scrollIntoView({behavior:'smooth', block:'center'});
 }
 function resizeLogo(file){
@@ -550,7 +598,13 @@ function saveAssoc(){
   const name = $('af-name').value.trim(), phone = $('af-phone').value.trim();
   if (!name){ toast('အသင်းအမည် ထည့်ပါ', false); return; }
   if (!/^[\d+\-\s]{3,20}$/.test(phone)){ toast('ဖုန်းနံပါတ် မှန်ကန်စွာ ထည့်ပါ', false); return; }
-  const data = {name, sub:$('af-sub').value.trim(), phone, chatId:$('af-chat').value.trim(), logo:editLogo};
+  const latS = $('af-lat').value.trim(), lngS = $('af-lng').value.trim();
+  let lat = null, lng = null;
+  if (latS || lngS){
+    lat = parseFloat(latS); lng = parseFloat(lngS);
+    if (!(lat >= -90 && lat <= 90) || !(lng >= -180 && lng <= 180)){ toast('တည်နေရာ ကိုဩဒိနိတ် မမှန်ပါ', false); return; }
+  }
+  const data = {name, sub:$('af-sub').value.trim(), phone, chatId:$('af-chat').value.trim(), logo:editLogo, lat, lng};
   if (editId){ Object.assign(cfg.assocs.find(x => x.id === editId), data); }
   else { cfg.assocs.push(Object.assign({id:'a' + Date.now().toString(36)}, data)); }
   persist(); applyCfg(); renderAssocAdmin(); $('assoc-form').classList.add('hidden'); toast('အသင်း သိမ်းဆည်းပြီးပါပြီ');
@@ -573,6 +627,9 @@ function saveAdmin(){
   const rem = $('a-remote').value.trim();
   if (rem && !/^https:\/\//.test(rem)){ toast('Remote Config URL သည် https:// ဖြင့် စရမည်', false); return; }
   cfg.remoteUrl = rem;
+  const fu = $('a-fburl').value.trim().replace(/\/+$/, '');
+  if (fu && !/^https:\/\/[\w.-]+\.(firebaseio\.com|firebasedatabase\.app)$/.test(fu)){ toast('Firebase Database URL မမှန်ပါ', false); return; }
+  cfg.fbUrl = fu; cfg.fbKey = $('a-fbkey').value.trim();
   const np = $('a-newpin').value.trim();
   if (np){ if (np.length < 4){ toast('PIN သည် အနည်းဆုံး ၄ လုံးရှိရမည်', false); return; } cfg.pin = np; }
   persist(); applyCfg(); closeAdmin(); toast('သိမ်းဆည်းပြီးပါပြီ');
@@ -588,11 +645,11 @@ async function testSend(){
   const r = await dispatch('✅ စမ်းသပ်မှု - ' + a.name + '\nSOS ချိတ်ဆက်မှု အလုပ်လုပ်နေပါသည်။\n' + nowStr(), a, {test:true});
   toast(r.ok ? 'ပို့ပြီးပါပြီ။ ရုံးတွင် လက်ခံရရှိမရှိ စစ်ပါ' : 'ပို့၍မရပါ။ Token / Chat ID / အင်တာနက် စစ်ပါ', r.ok);
 }
-const SYNC_KEYS = ['assocs','mainId','alert','ambulances','tgToken','hook'];
+const SYNC_KEYS = ['assocs','mainId','alert','ambulances'];
 function mergeRemote(j){
   if (!j || typeof j !== 'object') return false;
   if (Array.isArray(j.assocs)){
-    const clean = j.assocs.filter(a => a && a.id && a.name && a.phone).map(a => ({id:String(a.id), name:String(a.name), sub:String(a.sub || ''), phone:String(a.phone), chatId:String(a.chatId || ''), logo:safeLogo(a.logo)}));
+    const clean = j.assocs.filter(a => a && a.id && a.name && a.phone).map(a => ({id:String(a.id), name:String(a.name), sub:String(a.sub || ''), phone:String(a.phone), chatId:String(a.chatId || ''), logo:safeLogo(a.logo), lat:Number.isFinite(+a.lat) && a.lat !== null && a.lat !== '' ? +a.lat : null, lng:Number.isFinite(+a.lng) && a.lng !== null && a.lng !== '' ? +a.lng : null}));
     if (!clean.length) return false; cfg.assocs = clean;
     cfg.mainId = clean.some(a => a.id === j.mainId) ? j.mainId : clean[0].id;
   }
@@ -612,14 +669,123 @@ function importCfg(){
   try { if (!mergeRemote(JSON.parse($('a-json').value))) throw 0; persist(); applyCfg(); renderAssocAdmin(); toast('Import လုပ်ပြီးပါပြီ'); }
   catch (e) { toast('JSON မမှန်ကန်ပါ', false); }
 }
+function syncPayload(){ const o = {}; SYNC_KEYS.forEach(k => o[k] = cfg[k]); o.updatedAt = Date.now(); return o; }
+async function publishFB(){
+  const url = $('a-fburl').value.trim().replace(/\/+$/, ''), key = $('a-fbkey').value.trim(), em = $('a-fbmail').value.trim(), pw = $('a-fbpass').value;
+  if (!/^https:\/\/[\w.-]+\.(firebaseio\.com|firebasedatabase\.app)$/.test(url) || !key || !em || !pw){ toast('Database URL, API Key, Email, Password အားလုံး ထည့်ပါ', false); return; }
+  cfg.fbUrl = url; cfg.fbKey = key;
+  // save current admin edits first
+  cfg.ambulances = Math.max(0, parseInt($('a-amb').value, 10) || 0);
+  cfg.alert = $('a-alert').value.trim() || DEFAULTS.alert;
+  persist();
+  toast('ပို့နေပါသည်...');
+  try {
+    const r1 = await fetch('https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=' + encodeURIComponent(key), {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email:em, password:pw, returnSecureToken:true})});
+    const j1 = await r1.json();
+    if (!r1.ok || !j1.idToken) throw new Error('login');
+    const r2 = await fetch(url + '/config.json?auth=' + encodeURIComponent(j1.idToken), {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(syncPayload())});
+    if (!r2.ok) throw new Error('write');
+    $('a-fbpass').value = '';
+    toast('အသုံးပြုသူအားလုံးသို့ ပို့ပြီးပါပြီ');
+  } catch (e) { toast(e.message === 'login' ? 'Email / Password မှားနေသည်' : 'ပို့၍မရပါ။ Rules / URL / အင်တာနက် စစ်ပါ', false); }
+}
 async function loadRemote(){
-  if (!cfg.remoteUrl) return;
+  const url = cfg.fbUrl ? cfg.fbUrl + '/config.json' : cfg.remoteUrl;
+  if (!url) return;
   try {
     const ctl = new AbortController(); setTimeout(() => ctl.abort(), 8000);
-    const r = await fetch(cfg.remoteUrl, {cache:'no-store', signal:ctl.signal});
+    const r = await fetch(url, {cache:'no-store', signal:ctl.signal});
     if (!r.ok) return;
     if (mergeRemote(await r.json())){ persist(); applyCfg(); }
   } catch (e) {}
+}
+
+/* ================= Maps ================= */
+const OSM = {url:'https://tile.openstreetmap.org/{z}/{x}/{y}.png', opt:{maxZoom:19, attribution:'&copy; OpenStreetMap'}};
+const MAGWAY = [20.1496, 94.9325];
+let mainMap = null, mainLayer = null, meMarker = null;
+function hasMap(){ return typeof L !== 'undefined'; }
+function assocPos(a){ return (a.lat != null && a.lng != null) ? [a.lat, a.lng] : null; }
+function initMapTab(){
+  renderMapList();
+  if (!hasMap()){ $('map-main').innerHTML = '<p class="text-xs text-slate-400 text-center pt-28">မြေပုံ ဖွင့်၍မရပါ။ အင်တာနက် စစ်ပါ။</p>'; return; }
+  if (!mainMap){
+    mainMap = L.map('map-main').setView(MAGWAY, 13);
+    L.tileLayer(OSM.url, OSM.opt).addTo(mainMap);
+    mainLayer = L.layerGroup().addTo(mainMap);
+  }
+  setTimeout(() => { mainMap.invalidateSize(); refreshMarkers(); }, 120);
+}
+function refreshMarkers(){
+  if (!mainMap) return;
+  mainLayer.clearLayers();
+  const pts = [];
+  cfg.assocs.forEach(a => {
+    const p = assocPos(a); if (!p) return; pts.push(p);
+    const el = document.createElement('div');
+    el.innerHTML = '<b></b><br><a></a><br><a></a>';
+    el.firstChild.textContent = a.name;
+    const [c, d] = el.querySelectorAll('a');
+    c.href = telHref(a.phone); c.textContent = '📞 ' + a.phone;
+    d.href = 'https://www.google.com/maps/dir/?api=1&destination=' + p[0] + ',' + p[1]; d.target = '_blank'; d.rel = 'noopener'; d.textContent = '🧭 လမ်းညွှန်';
+    L.marker(p).addTo(mainLayer).bindPopup(el);
+  });
+  if (pts.length > 1) mainMap.fitBounds(pts, {padding:[30,30], maxZoom:15});
+  else if (pts.length === 1) mainMap.setView(pts[0], 14);
+}
+function renderMapList(){
+  const withPos = cfg.assocs.filter(a => assocPos(a));
+  $('map-list').innerHTML = withPos.length ? withPos.map(a => `
+    <div class="bg-white rounded-2xl p-3 shadow-sm border border-slate-100 flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center overflow-hidden shrink-0">${safeLogo(a.logo) ? `<img src="${esc(safeLogo(a.logo))}" alt="" class="w-full h-full object-contain">` : '<i class="fa-solid fa-location-dot text-red-600"></i>'}</div>
+      <div class="flex-1 min-w-0"><h3 class="text-sm font-bold truncate">${esc(a.name)}</h3><p class="text-[11px] text-slate-500 truncate">${esc(a.sub || '')}</p></div>
+      <a href="https://www.google.com/maps/dir/?api=1&destination=${a.lat},${a.lng}" target="_blank" rel="noopener" class="text-[11px] font-bold text-blue-600 px-2"><i class="fa-solid fa-diamond-turn-right"></i></a>
+      <a href="${esc(telHref(a.phone))}" class="w-9 h-9 rounded-full bg-emerald-500 text-white flex items-center justify-center"><i class="fa-solid fa-phone"></i></a>
+    </div>`).join('') : '<p class="text-center text-xs text-slate-400 py-6">မြေပုံတည်နေရာ သတ်မှတ်ထားသော အသင်း မရှိသေးပါ</p>';
+}
+async function locateOnMap(){
+  const c = await getGPS(10000, true);
+  if (!c || !mainMap) return;
+  if (meMarker) mainMap.removeLayer(meMarker);
+  meMarker = L.circleMarker([c.lat, c.lng], {radius:9, color:'#fff', weight:3, fillColor:'#2563eb', fillOpacity:1}).addTo(mainMap).bindPopup('သင့်တည်နေရာ');
+  mainMap.setView([c.lat, c.lng], 15);
+}
+
+/* picker */
+let pickMap = null, pickMarker = null, pickMode = null;
+function pickStart(){
+  if (pickMode === 'assoc'){ const la = parseFloat($('af-lat').value), ln = parseFloat($('af-lng').value); if (isFinite(la) && isFinite(ln)) return [la, ln]; }
+  if (coords) return [coords.lat, coords.lng];
+  const p = assocPos(mainAssoc()); return p || MAGWAY;
+}
+function openPicker(mode){
+  if (!hasMap()){ toast('မြေပုံ ဖွင့်၍မရပါ။ အင်တာနက် စစ်ပါ', false); return; }
+  pickMode = mode;
+  $('pick-title').textContent = mode === 'assoc' ? 'ရုံးတည်နေရာ ရွေးပါ' : 'ဖြစ်ပွားသည့်နေရာ ရွေးပါ';
+  $('pick-ov').classList.remove('hidden');
+  const st = pickStart();
+  if (!pickMap){
+    pickMap = L.map('pick-map').setView(st, 16);
+    L.tileLayer(OSM.url, OSM.opt).addTo(pickMap);
+    pickMarker = L.marker(st, {draggable:true}).addTo(pickMap);
+    pickMap.on('click', e => pickMarker.setLatLng(e.latlng));
+  } else { pickMap.setView(st, 16); pickMarker.setLatLng(st); }
+  setTimeout(() => pickMap.invalidateSize(), 120);
+}
+function closePicker(){ $('pick-ov').classList.add('hidden'); }
+async function pickMyLoc(){
+  const c = await getGPS(10000, true);
+  if (c && pickMap){ pickMarker.setLatLng([c.lat, c.lng]); pickMap.setView([c.lat, c.lng], 17); }
+}
+function confirmPick(){
+  const ll = pickMarker.getLatLng(), lat = +ll.lat.toFixed(6), lng = +ll.lng.toFixed(6);
+  if (pickMode === 'assoc'){ $('af-lat').value = lat; $('af-lng').value = lng; }
+  else {
+    coords = {lat, lng, acc:0};
+    const el = $('gps-ok'); el.classList.remove('hidden');
+    el.innerHTML = '<i class="fa-solid fa-check-circle"></i> မြေပုံတွင် ရွေးထားသည် (' + lat.toFixed(5) + ', ' + lng.toFixed(5) + ')';
+  }
+  closePicker(); toast('တည်နေရာ ရွေးချယ်ပြီးပါပြီ');
 }
 
 /* ================= Init ================= */
