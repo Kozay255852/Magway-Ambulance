@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#b91c1c">
+<title>ရောင်စုံမေတ္တာ ကယ်ဆယ်ရေးအသင်း</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Myanmar:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+  body{font-family:'Noto Sans Myanmar',sans-serif;background:#e2e8f0;-webkit-tap-highlight-color:transparent;line-height:1.7}
+  @keyframes pulse-ring{0%{transform:scale(.92);box-shadow:0 0 0 0 rgba(220,38,38,.7)}70%{transform:scale(1);box-shadow:0 0 0 22px rgba(220,38,38,0)}100%{transform:scale(.92);box-shadow:0 0 0 0 rgba(220,38,38,0)}}
+  .sos-pulse{animation:pulse-ring 2s infinite}
+  .app-scroll::-webkit-scrollbar{width:4px}
+  .app-scroll::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:9999px}
+  .tab-content{animation:fadeIn .2s ease-in-out}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+  .hidden{display:none!important}
+  .nav-btn.active{color:#dc2626}
+  .guide-body{max-height:0;overflow:hidden;transition:max-height .3s ease}
+  .guide-card.open .guide-body{max-height:900px}
+  .guide-card.open .chev{transform:rotate(180deg)}
+  .chev{transition:transform .2s}
+  .inp{width:100%;font-size:12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:8px 12px;margin-top:2px}
+  .inp:focus{outline:none;border-color:#ef4444;background:#fff}
+  .lbl{font-size:12px;font-weight:600;display:block;margin-top:8px}
+</style>
+</head>
+<body class="min-h-screen flex justify-center items-start sm:py-4 text-slate-800">
+
+<div class="w-full max-w-md bg-slate-50 h-screen sm:h-[860px] sm:rounded-[2.2rem] sm:shadow-2xl sm:border-[6px] sm:border-slate-800 flex flex-col relative overflow-hidden">
+
+  <!-- HEADER -->
+  <header class="bg-gradient-to-r from-red-700 via-red-600 to-rose-600 text-white px-4 pt-4 pb-4 shadow-md z-20 shrink-0">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-3 min-w-0">
+        <div id="h-logo" class="w-11 h-11 rounded-2xl bg-white/15 border border-white/25 flex items-center justify-center shrink-0 overflow-hidden"></div>
+        <div class="min-w-0">
+          <div class="flex items-center gap-1.5">
+            <h1 id="h-name" class="font-bold text-base truncate"></h1>
+            <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500 shrink-0"><span class="w-1.5 h-1.5 rounded-full bg-white mr-1 animate-ping"></span>၂၄ နာရီ</span>
+          </div>
+          <p class="text-xs text-red-100 flex items-center gap-1 truncate"><i class="fa-solid fa-location-dot text-[10px]"></i><span id="h-sub" class="truncate"></span></p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 shrink-0">
+        <button onclick="openAdmin()" class="w-9 h-9 rounded-xl bg-white/15 border border-white/25 flex items-center justify-center" aria-label="Admin"><i class="fa-solid fa-gear text-sm"></i></button>
+        <a id="h-call" href="#" class="bg-white text-red-600 px-3 py-2 rounded-xl font-bold text-xs shadow flex items-center gap-1.5 active:scale-95 transition"><i class="fa-solid fa-phone-volume"></i><span>အမြန်ခေါ်</span></a>
+      </div>
+    </div>
+  </header>
+
+  <!-- TOAST -->
+  <div id="toast" class="hidden absolute top-20 left-1/2 -translate-x-1/2 z-[60] max-w-[90%] bg-slate-900/95 text-white text-xs font-medium px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2">
+    <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400"></i><span id="toast-msg"></span>
+  </div>
+
+  <main class="flex-1 overflow-y-auto app-scroll pb-24" id="main">
+
+    <!-- HOME -->
+    <section id="tab-home" class="tab-content p-4 space-y-4">
+      <div class="bg-amber-50 border border-amber-200 rounded-2xl p-3 flex items-start gap-2.5">
+        <div class="w-8 h-8 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0"><i class="fa-solid fa-triangle-exclamation"></i></div>
+        <div class="flex-1"><span class="text-xs font-bold text-amber-900">အရေးပေါ် အသိပေးချက်</span><p id="h-alert" class="text-xs text-amber-800 mt-0.5"></p></div>
+      </div>
+
+      <div class="bg-white rounded-3xl p-5 shadow-sm border border-slate-100 text-center">
+        <p class="text-xs font-semibold text-slate-500">အသက်အန္တရာယ်နှင့် အရေးပေါ် အခြေအနေကြုံပါက</p>
+        <h2 class="text-base font-bold mb-4">အောက်ပါ SOS ခလုတ်ကို နှိပ်ပါ</h2>
+        <div id="target-wrap" class="hidden mb-3 text-left">
+          <label class="text-[11px] font-semibold text-slate-600" for="target-sel">အကူအညီတောင်းမည့် အသင်း</label>
+          <select id="target-sel" class="inp" onchange="targetId=this.value"></select>
+        </div>
+        <div class="flex justify-center my-2">
+          <button onclick="startSOS()" class="sos-pulse w-36 h-36 rounded-full bg-gradient-to-b from-red-500 to-red-700 text-white flex flex-col items-center justify-center shadow-xl border-4 border-red-200 active:scale-95 transition">
+            <span class="text-3xl font-extrabold tracking-wider">SOS</span>
+            <span class="text-xs font-semibold mt-1 bg-white/20 px-2.5 py-0.5 rounded-full">အကူအညီတောင်းရန်</span>
+          </button>
+        </div>
+        <p class="text-[11px] text-slate-500 mt-4"><i class="fa-solid fa-shield-halved text-emerald-600 mr-1"></i>နှိပ်လိုက်လျှင် သင့်တည်နေရာ (GPS) နှင့်တကွ အသင်းရုံးသို့ တိုက်ရိုက် ပေးပို့ပါမည်။</p>
+      </div>
+
+      <div class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100 space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-bold flex items-center gap-2"><span class="w-1.5 h-4 bg-red-600 rounded-full"></span>လိုအပ်သည့် အကူအညီ ရွေးပါ</h3>
+          <span id="type-badge" class="text-[11px] font-semibold text-red-600 bg-red-50 px-2.5 py-0.5 rounded-full">အရေးပေါ်လူနာ</span>
+        </div>
+        <div class="grid grid-cols-2 gap-2.5" id="incident-grid">
+          <button type="button" data-type="အရေးပေါ်လူနာ" class="incident-btn flex flex-col items-center p-3 rounded-2xl border-2 border-red-600 bg-red-50 text-red-700 transition"><i class="fa-solid fa-heart-pulse text-xl mb-1"></i><span class="text-xs font-bold text-center">အရေးပေါ်လူနာ</span></button>
+          <button type="button" data-type="ဆေးရုံလွှဲပြောင်း/ဆေးရုံဆင်း" class="incident-btn flex flex-col items-center p-3 rounded-2xl border border-slate-200 bg-slate-50 text-slate-700 transition"><i class="fa-solid fa-hospital text-xl mb-1 text-sky-600"></i><span class="text-xs font-semibold text-center">ဆေးရုံလွှဲ/ဆေးရုံဆင်း</span></button>
+          <button type="button" data-type="ယာဉ်မတော်တဆမှု" class="incident-btn flex flex-col items-center p-3 rounded-2xl border border-slate-200 bg-slate-50 text-slate-700 transition"><i class="fa-solid fa-car-burst text-xl mb-1 text-orange-600"></i><span class="text-xs font-semibold text-center">ယာဉ်တိုက်မှု</span></button>
+          <button type="button" data-type="ရေနစ်မှု" class="incident-btn flex flex-col items-center p-3 rounded-2xl border border-slate-200 bg-slate-50 text-slate-700 transition"><i class="fa-solid fa-person-drowning text-xl mb-1 text-cyan-600"></i><span class="text-xs font-semibold text-center">ရေနစ်မှု (ရေငုပ်ရှာဖွေ)</span></button>
+          <button type="button" data-type="ရေဘေး/သဘာဝဘေး" class="incident-btn flex flex-col items-center p-3 rounded-2xl border border-slate-200 bg-slate-50 text-slate-700 transition"><i class="fa-solid fa-house-flood-water text-xl mb-1 text-blue-600"></i><span class="text-xs font-semibold text-center">ရေဘေး/သဘာဝဘေး</span></button>
+          <button type="button" data-type="အခြားအကူအညီ" class="incident-btn flex flex-col items-center p-3 rounded-2xl border border-slate-200 bg-slate-50 text-slate-700 transition"><i class="fa-solid fa-hand-holding-medical text-xl mb-1 text-emerald-600"></i><span class="text-xs font-semibold text-center">အခြားအကူအညီ</span></button>
+        </div>
+        <div class="space-y-3">
+          <div>
+            <div class="flex items-center justify-between"><label class="text-xs font-semibold" for="f-loc">တည်နေရာ / လိပ်စာ</label>
+              <button type="button" onclick="getGPS(8000,true)" class="text-[11px] font-bold text-blue-600 flex items-center gap-1"><i class="fa-solid fa-location-crosshairs"></i>GPS ရယူရန်</button></div>
+            <input id="f-loc" type="text" placeholder="ဥပမာ - ပြည်တော်သာလမ်း၊ မကွေးမြို့" class="inp">
+            <p id="gps-ok" class="hidden text-[10px] text-emerald-600 font-medium mt-1"></p>
+          </div>
+          <div class="grid grid-cols-2 gap-2.5">
+            <div><label class="text-xs font-semibold" for="f-phone">ဆက်သွယ်ရန် ဖုန်း</label><input id="f-phone" type="tel" inputmode="tel" placeholder="09-xxxxxxxxx" class="inp"></div>
+            <div><label class="text-xs font-semibold" for="f-count">လူနာ/ပါဝင်သူ အရေအတွက်</label><input id="f-count" type="number" min="1" placeholder="၁" class="inp"></div>
+          </div>
+          <div><label class="text-xs font-semibold" for="f-note">အခြေအနေ အကျဉ်းချုပ်</label><textarea id="f-note" rows="2" placeholder="ဥပမာ - ဆေးရုံသို့ လွှဲပြောင်းရန်၊ အနီးဆုံး အမှတ်အသား..." class="inp"></textarea></div>
+          <button type="button" onclick="sendForm()" class="w-full bg-red-600 active:scale-[.98] text-white font-bold text-sm py-3 rounded-2xl shadow-md flex items-center justify-center gap-2"><i class="fa-solid fa-paper-plane"></i>အကူအညီတောင်းခံမှု ပေးပို့မည်</button>
+          <button type="button" onclick="shareForm()" class="w-full bg-slate-100 text-slate-700 font-semibold text-xs py-2.5 rounded-2xl flex items-center justify-center gap-2"><i class="fa-solid fa-share-nodes"></i>Viber / Messenger ဖြင့် မျှဝေရန်</button>
+        </div>
+      </div>
+
+      <div class="bg-gradient-to-r from-slate-800 to-slate-900 text-white rounded-3xl p-4 shadow-md flex items-center justify-between">
+        <div><span class="text-[10px] tracking-wider text-emerald-400 font-bold">လက်ရှိ အသင့်ရှိနေမှု</span>
+          <h4 id="h-amb" class="text-sm font-bold mt-0.5"></h4>
+          <p class="text-[11px] text-slate-300">ရေငုပ်ရှာဖွေရေးနှင့် ကယ်ဆယ်ရေးအဖွဲ့ ၂၄ နာရီ အသင့်</p></div>
+        <div class="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center text-emerald-400 text-xl shrink-0"><i class="fa-solid fa-truck-fast"></i></div>
+      </div>
+    </section>
+
+    <!-- SERVICES -->
+    <section id="tab-services" class="tab-content hidden p-4 space-y-3">
+      <div class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100"><h2 class="text-base font-bold">ကျွန်ုပ်တို့၏ ဝန်ဆောင်မှုများ</h2><p class="text-xs text-slate-500">ရောင်စုံမေတ္တာ ကယ်ဆယ်ရေးအသင်း</p></div>
+      <div id="svc-list" class="space-y-3"></div>
+      <a id="svc-call" href="#" class="block bg-red-600 text-white text-center font-bold text-sm py-3 rounded-2xl shadow-md active:scale-[.98]"><i class="fa-solid fa-phone mr-2"></i>ဝန်ဆောင်မှုတောင်းရန် ဖုန်းခေါ်မည်</a>
+    </section>
+
+    <!-- FIRST AID -->
+    <section id="tab-aid" class="tab-content hidden p-4 space-y-3">
+      <div class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100">
+        <h2 class="text-base font-bold">ရှေးဦးသူနာပြုစုနည်း</h2><p class="text-xs text-slate-500">ကယ်ဆယ်ရေးအဖွဲ့ မရောက်မီ အခြေခံလုပ်ဆောင်ရန်</p>
+        <div class="relative mt-3"><input id="g-search" oninput="renderGuides()" type="text" placeholder="ရှာဖွေရန် (ဥပမာ - မြွေကိုက်၊ CPR၊ ရေနစ်)" class="w-full text-xs bg-slate-100 border border-transparent focus:border-red-500 focus:bg-white rounded-xl pl-9 pr-4 py-2.5 focus:outline-none"><i class="fa-solid fa-magnifying-glass text-slate-400 absolute left-3.5 top-3 text-xs"></i></div>
+      </div>
+      <div id="g-list" class="space-y-3"></div>
+      <p class="text-[10px] text-slate-400 text-center px-4">ဤအချက်အလက်များသည် အခြေခံအသိပေးချက်သာ ဖြစ်သည်။ ဆရာဝန်၏ ကုသမှုကို အစားထိုး၍ မရပါ။ အရေးပေါ်ကိစ္စတွင် ကယ်ဆယ်ရေးကို ချက်ချင်းခေါ်ပါ။</p>
+    </section>
+
+    <!-- CONTACTS -->
+    <section id="tab-contacts" class="tab-content hidden p-4 space-y-3">
+      <div class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100">
+        <h2 class="text-base font-bold">အရေးပေါ် ဖုန်းနံပါတ်များ</h2><p class="text-xs text-slate-500">တစ်ချက်နှိပ်ရုံဖြင့် တိုက်ရိုက်ခေါ်ဆိုနိုင်ပါသည်</p>
+        <div class="relative mt-3"><input id="c-search" oninput="renderContacts()" type="text" placeholder="ရှာဖွေရန်..." class="w-full text-xs bg-slate-100 border border-transparent focus:border-red-500 focus:bg-white rounded-xl pl-9 pr-4 py-2.5 focus:outline-none"><i class="fa-solid fa-magnifying-glass text-slate-400 absolute left-3.5 top-3 text-xs"></i></div>
+      </div>
+      <div id="c-list" class="space-y-2.5"></div>
+    </section>
+  </main>
+
+  <!-- BOTTOM NAV -->
+  <nav class="absolute bottom-0 inset-x-0 bg-white border-t border-slate-200 z-30 grid grid-cols-4 pb-1">
+    <button class="nav-btn active flex flex-col items-center py-2 text-slate-400" data-tab="home"><i class="fa-solid fa-house text-lg"></i><span class="text-[10px] font-semibold mt-0.5">ပင်မ</span></button>
+    <button class="nav-btn flex flex-col items-center py-2 text-slate-400" data-tab="services"><i class="fa-solid fa-hand-holding-heart text-lg"></i><span class="text-[10px] font-semibold mt-0.5">ဝန်ဆောင်မှု</span></button>
+    <button class="nav-btn flex flex-col items-center py-2 text-slate-400" data-tab="aid"><i class="fa-solid fa-kit-medical text-lg"></i><span class="text-[10px] font-semibold mt-0.5">ရှေးဦး</span></button>
+    <button class="nav-btn flex flex-col items-center py-2 text-slate-400" data-tab="contacts"><i class="fa-solid fa-address-book text-lg"></i><span class="text-[10px] font-semibold mt-0.5">ဖုန်းစာရင်း</span></button>
+  </nav>
+
+  <!-- SOS OVERLAY -->
+  <div id="sos-ov" class="hidden absolute inset-0 z-50 bg-red-700/95 text-white flex flex-col items-center justify-center text-center p-6">
+    <div id="ov-count" class="hidden">
+      <p class="text-sm font-semibold">SOS ပေးပို့တော့မည်</p>
+      <div id="ov-num" class="text-8xl font-extrabold my-4">3</div>
+      <p class="text-xs text-red-100 mb-6">မတော်တဆ နှိပ်မိပါက ပယ်ဖျက်ပါ</p>
+      <button onclick="cancelSOS()" class="bg-white text-red-700 font-bold px-8 py-3 rounded-2xl">ပယ်ဖျက်မည်</button>
+    </div>
+    <div id="ov-sending" class="hidden"><i class="fa-solid fa-spinner fa-spin text-5xl mb-4"></i><p class="font-bold">ပေးပို့နေပါသည်...</p><p class="text-xs text-red-100 mt-1">တည်နေရာ ရယူပြီး အသင်းရုံးသို့ ပို့နေသည်</p></div>
+    <div id="ov-done" class="hidden w-full">
+      <div id="ov-icon" class="w-20 h-20 mx-auto rounded-full bg-white/20 flex items-center justify-center text-4xl mb-4"></div>
+      <h3 id="ov-title" class="text-lg font-bold"></h3>
+      <p id="ov-text" class="text-xs text-red-100 mt-1 mb-6"></p>
+      <div id="ov-btns" class="space-y-2.5"></div>
+    </div>
+  </div>
+
+  <!-- ADMIN -->
+  <div id="admin" class="hidden absolute inset-0 z-40 bg-black/60 flex items-end justify-center">
+    <div class="bg-white w-full rounded-t-3xl p-5 max-h-[92%] overflow-y-auto app-scroll">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-bold text-sm"><i class="fa-solid fa-gear mr-1.5 text-slate-500"></i>အက်ဒမင် ဆက်တင်</h3>
+        <button onclick="closeAdmin()" class="w-8 h-8 rounded-full bg-slate-100"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div id="admin-gate">
+        <label class="lbl" for="a-pin">လျှို့ဝှက်ကုဒ် (PIN)</label>
+        <input id="a-pin" type="password" inputmode="numeric" class="inp" placeholder="••••">
+        <button onclick="unlockAdmin()" class="w-full mt-3 bg-slate-800 text-white text-sm font-bold py-2.5 rounded-xl">ဝင်မည်</button>
+        <p class="text-[10px] text-slate-400 mt-2">ပထမဆုံးအသုံးပြုချိန် PIN မှာ 1234 ဖြစ်ပါသည်။ ဝင်ပြီးနောက် ပြောင်းလဲပါ။</p>
+      </div>
+
+      <div id="admin-body" class="hidden">
+        <!-- Associations -->
+        <h4 class="text-xs font-bold text-red-700 mb-1"><i class="fa-solid fa-people-group mr-1"></i>၁။ အသင်းများ</h4>
+        <div id="a-assoc-list" class="space-y-2"></div>
+        <button onclick="editAssoc(null)" class="w-full mt-2 border-2 border-dashed border-slate-300 text-slate-600 text-xs font-bold py-2.5 rounded-xl"><i class="fa-solid fa-plus mr-1"></i>အသင်းအသစ် ထည့်မည်</button>
+
+        <div id="assoc-form" class="hidden mt-3 p-3 bg-slate-50 border border-slate-200 rounded-2xl">
+          <h5 id="af-title" class="text-xs font-bold"></h5>
+          <div class="flex items-center gap-3 mt-2">
+            <div id="af-logo" class="w-16 h-16 rounded-2xl bg-white border border-slate-200 flex items-center justify-center overflow-hidden text-slate-300 text-2xl"><i class="fa-solid fa-image"></i></div>
+            <div class="flex-1">
+              <label class="inline-block bg-slate-800 text-white text-[11px] font-bold px-3 py-2 rounded-xl cursor-pointer"><i class="fa-solid fa-upload mr-1"></i>Logo ရွေးရန်<input type="file" accept="image/*" class="hidden" onchange="pickLogo(this)"></label>
+              <button type="button" onclick="clearLogo()" class="text-[11px] text-red-600 font-semibold ml-2">ဖျက်မည်</button>
+            </div>
+          </div>
+          <label class="lbl">အသင်းအမည်</label><input id="af-name" class="inp">
+          <label class="lbl">ဒေသ / ဖော်ပြချက်</label><input id="af-sub" class="inp">
+          <label class="lbl">ဖုန်းနံပါတ် (ဟော့လိုင်း)</label><input id="af-phone" type="tel" class="inp">
+          <label class="lbl">Telegram Chat ID (ရုံးသို့ တိုက်ရိုက်လက်ခံမည့် group/user)</label><input id="af-chat" class="inp" placeholder="ဥပမာ - -1001234567890">
+          <div class="grid grid-cols-2 gap-2 mt-3">
+            <button onclick="saveAssoc()" class="bg-red-600 text-white text-xs font-bold py-2.5 rounded-xl">သိမ်းမည်</button>
+            <button onclick="document.getElementById('assoc-form').classList.add('hidden')" class="bg-slate-200 text-slate-700 text-xs font-bold py-2.5 rounded-xl">မလုပ်တော့ပါ</button>
+          </div>
+        </div>
+
+        <!-- General -->
+        <h4 class="text-xs font-bold text-red-700 mt-5 mb-1"><i class="fa-solid fa-sliders mr-1"></i>၂။ အထွေထွေ</h4>
+        <label class="lbl">အသင့်ရှိသော လူနာတင်ယာဉ် အရေအတွက်</label><input id="a-amb" type="number" min="0" class="inp">
+        <label class="lbl">အရေးပေါ် အသိပေးချက်</label><textarea id="a-alert" rows="3" class="inp"></textarea>
+        <label class="lbl">PIN အသစ် (မပြောင်းလိုပါက ကွက်လပ်ထားပါ)</label><input id="a-newpin" type="password" inputmode="numeric" class="inp">
+
+        <!-- Delivery -->
+        <h4 class="text-xs font-bold text-red-700 mt-5 mb-1"><i class="fa-solid fa-satellite-dish mr-1"></i>၃။ SOS တိုက်ရိုက်ပို့ရန် ချိတ်ဆက်မှု</h4>
+        <label class="lbl">Telegram Bot Token</label><input id="a-tok" class="inp" placeholder="123456:ABC-DEF...">
+        <label class="lbl">Webhook URL (ရွေးချယ်ခွင့် - Google Apps Script စသည်)</label><input id="a-hook" class="inp" placeholder="https://script.google.com/macros/s/.../exec">
+        <button onclick="testSend()" class="w-full mt-2 bg-sky-600 text-white text-xs font-bold py-2.5 rounded-xl"><i class="fa-solid fa-vial mr-1"></i>စမ်းသပ်စာ ပို့ကြည့်မည်</button>
+
+        <!-- Config sync -->
+        <h4 class="text-xs font-bold text-red-700 mt-5 mb-1"><i class="fa-solid fa-cloud-arrow-down mr-1"></i>၄။ ဆက်တင် မျှဝေခြင်း</h4>
+        <label class="lbl">Remote Config URL (အသုံးပြုသူအားလုံးဖုန်းတွင် အလိုအလျောက် Update ဖြစ်စေရန်)</label><input id="a-remote" class="inp" placeholder="https://.../config.json">
+        <div class="grid grid-cols-2 gap-2 mt-2">
+          <button onclick="exportCfg()" class="bg-slate-800 text-white text-xs font-bold py-2.5 rounded-xl">Export (JSON)</button>
+          <button onclick="importCfg()" class="bg-slate-200 text-slate-700 text-xs font-bold py-2.5 rounded-xl">Import</button>
+        </div>
+        <textarea id="a-json" rows="4" class="inp mt-2 font-mono" placeholder="Export/Import JSON ဤနေရာတွင်"></textarea>
+
+        <div class="grid grid-cols-2 gap-2 mt-4">
+          <button onclick="saveAdmin()" class="bg-red-600 text-white text-sm font-bold py-3 rounded-xl">အားလုံး သိမ်းမည်</button>
+          <button onclick="resetAdmin()" class="bg-slate-200 text-slate-700 text-sm font-bold py-3 rounded-xl">မူလအတိုင်း</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ================= Config ================= */
+const DEFAULTS = {
+  pin: '1234',
+  alert: 'ဧရာဝတီမြစ်ရေ မြင့်တက်လာနိုင်သဖြင့် မြစ်ကမ်းဘေးနေ ပြည်သူများ အရေးပေါ်ပြောင်းရွှေ့ရန် လိုအပ်ပါက အချိန်မရွေး ဆက်သွယ်နိုင်ပါသည်။',
+  ambulances: 3,
+  tgToken: '',
+  hook: '',
+  remoteUrl: '',
+  mainId: 'main',
+  assocs: [{id:'main', name:'ရောင်စုံမေတ္တာ ကယ်ဆယ်ရေး', sub:'မကွေးမြို့နှင့် အနီးတစ်ဝိုက်', phone:'09400192192', chatId:'', logo:''}]
+};
+const clone = o => JSON.parse(JSON.stringify(o));
+let cfg = clone(DEFAULTS);
+try { const s = localStorage.getItem('rmk_cfg2'); if (s) cfg = Object.assign(cfg, JSON.parse(s)); } catch (e) {}
+function persist(){ try { localStorage.setItem('rmk_cfg2', JSON.stringify(cfg)); } catch (e) { toast('သိမ်းဆည်း၍မရပါ (Logo ကြီးလွန်းနိုင်သည်)', false); } }
+
+const MM = '၀၁၂၃၄၅၆၇၈၉';
+const toMM = n => String(n).replace(/\d/g, d => MM[d]);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const telHref = n => 'tel:' + String(n).replace(/[^\d+]/g, '');
+const $ = id => document.getElementById(id);
+const safeLogo = l => (typeof l === 'string' && /^(data:image\/|https:\/\/)/.test(l)) ? l : '';
+const mainAssoc = () => cfg.assocs.find(a => a.id === cfg.mainId) || cfg.assocs[0];
+let targetId = null;
+const target = () => cfg.assocs.find(a => a.id === targetId) || mainAssoc();
+
+let toastTimer;
+function toast(msg, ok = true){
+  $('toast-msg').textContent = msg;
+  $('toast-icon').className = ok ? 'fa-solid fa-circle-check text-emerald-400' : 'fa-solid fa-circle-exclamation text-amber-400';
+  $('toast').classList.remove('hidden');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => $('toast').classList.add('hidden'), 3500);
+}
+
+/* ================= Data ================= */
+const SERVICES = [
+  {icon:'fa-truck-medical', color:'red', title:'လူနာတင်ယာဉ် (အရေးပေါ်)', desc:'အရေးပေါ်လူနာများကို ဆေးရုံသို့ အမြန်ပို့ဆောင်ပေးခြင်း။'},
+  {icon:'fa-hospital', color:'sky', title:'ဆေးရုံလွှဲပြောင်းလူနာ ပို့ဆောင်ရေး', desc:'ဆေးရုံတစ်ခုမှ အခြားဆေးရုံသို့ လွှဲပြောင်းရသည့် လူနာများကို ဘေးကင်းစွာ ပို့ဆောင်ပေးခြင်း။'},
+  {icon:'fa-house-medical', color:'emerald', title:'ဆေးရုံဆင်းလူနာ ပို့ဆောင်ရေး', desc:'ဆေးရုံမှဆင်းသည့် လူနာများကို အိမ်သို့ ပြန်လည်ပို့ဆောင်ပေးခြင်း။'},
+  {icon:'fa-life-ring', color:'orange', title:'ကယ်ဆယ်ရေး လုပ်ငန်းများ', desc:'မတော်တဆမှုများ၊ အန္တရာယ်ကြုံနေသူများကို ကယ်ဆယ်ရေး ဆောင်ရွက်ပေးခြင်း။'},
+  {icon:'fa-house-flood-water', color:'blue', title:'သဘာဝဘေးအန္တရာယ် ကူညီရေး', desc:'ရေဘေး၊ မုန်တိုင်းနှင့် အခြားသဘာဝဘေးများတွင် ကူညီထောက်ပံ့ပေးခြင်း။'},
+  {icon:'fa-person-swimming', color:'cyan', title:'ရေငုပ်ရှာဖွေရေး', desc:'ရေနစ်သူများကို ရေငုပ်အဖွဲ့ဖြင့် ရှာဖွေကယ်ဆယ်ပေးခြင်း။'}
+];
+const GUIDES = [
+  {icon:'fa-heart-pulse', title:'နှလုံးခုန်ရပ် / အသက်ရှူရပ် (CPR)', tags:'cpr နှလုံး သတိမေ့ အသက်ရှူ',
+   steps:['လူနာကို လှုပ်နှိုးပြီး ပြန်လည်တုံ့ပြန်မှု ရှိ/မရှိ စစ်ပါ။ မတုံ့ပြန်ပါက ချက်ချင်း ကယ်ဆယ်ရေးကို ခေါ်ပါ။','လူနာကို ခြေပြင်ရိုးရိုးမာမာ မျက်နှာပြင်ပေါ် ပက်လက်ထားပါ။','ရင်အုံအလယ် (ရင်ဘတ်အရိုး၏ အောက်ဝက်) ပေါ် လက်နှစ်ဖက်ထပ်ကာ ထားပါ။','လက်မကွေးဘဲ ရင်အုံကို ၅ - ၆ စင်တီမီတာ နက်အောင် မိနစ်လျှင် ၁၀၀ မှ ၁၂၀ အကြိမ် အမြန်နှင့်ခိုင်ခိုင်ဖိပါ။','ဖိချက်တစ်ခုပြီးတိုင်း ရင်ဘတ် အပြည့်ပြန်ထွက်ခွင့်ပေးပါ။','ကယ်ဆယ်ရေးအဖွဲ့ ရောက်သည်အထိ သို့မဟုတ် လူနာပြန်လည်လှုပ်ရှားလာသည်အထိ မရပ်ပါနှင့်။']},
+  {icon:'fa-person-drowning', title:'ရေနစ်သူ', tags:'ရေနစ် ရေမြှုပ် မြစ် ရေကူး',
+   steps:['သင်ကိုယ်တိုင် ရေထဲမဝင်မီ ကြိုး၊ တုတ်၊ ဘောလုံး၊ ပလပ်စတစ်ပုလင်းကဲ့သို့ တစ်ခုခုကို လှမ်းပေးပါ။','ကယ်ဆယ်ရေးနှင့် ရေငုပ်အဖွဲ့ကို ချက်ချင်းခေါ်ပါ။','ကုန်းပေါ်ရောက်လျှင် အသက်ရှူ စစ်ပါ။ မရှူပါက CPR စတင်ပါ။','ရေထွက်စေရန် ဝမ်းဗိုက်ကို မဖိပါနှင့်။','ကိုယ်ပူချိန်ကျသွားနိုင်၍ စိုနေသောအဝတ်ကိုချွတ်ပြီး ခြုံပေးပါ။']},
+  {icon:'fa-droplet', title:'သွေးထွက်လွန်ခြင်း', tags:'သွေး ဒဏ်ရာ ကော်ရာ',
+   steps:['သန့်ရှင်းသောအဝတ်ဖြင့် ဒဏ်ရာကို တိုက်ရိုက်၊ ခိုင်ခိုင်ဖိထားပါ။','သွေးဆက်စီးနေပါက အဝတ်ကို မဖယ်ဘဲ အပေါ်မှ ထပ်ဖိပါ။','ဒဏ်ရာရသောလက်/ခြေကို နှလုံးအထက်သို့ မြှောက်ထားပါ (အရိုးမကျိုးလျှင်)။','လူနာကို လဲလျောင်းစေပြီး အေးမသွားစေရန် ခြုံပေးပါ။','ကယ်ဆယ်ရေးကို ခေါ်ပါ။ ဒဏ်ရာထဲ ထိုးစိုက်နေသောအရာကို မနှုတ်ပါနှင့်။']},
+  {icon:'fa-bone', title:'အရိုးကျိုး / ယာဉ်မတော်တဆမှု', tags:'အရိုးကျိုး ယာဉ်တိုက် လည်ပင်း ကျောရိုး',
+   steps:['လူနာကို မလိုအပ်ဘဲ မရွှေ့ပါနှင့်။ အထူးသဖြင့် လည်ပင်း၊ ကျောရိုး ထိခိုက်နိုင်လျှင်။','ကယ်ဆယ်ရေးကို ချက်ချင်းခေါ်ပါ။','ကျိုးသည့်နေရာကို မလှုပ်ရှားစေရန် ဘေးနှစ်ဖက်မှ ပျဉ်၊ တုတ်ဖြင့် ပေါ့ပါးစွာ ခံ၍ ချည်ပါ။','သွေးထွက်နေပါက ဒဏ်ရာကို ဖိပါ။','လူနာကို စကားပြောပေးပြီး သတိလစ်မသွားစေရန် စောင့်ကြည့်ပါ။']},
+  {icon:'fa-staff-snake', title:'မြွေကိုက်', tags:'မြွေ ကိုက် မြွေဆိပ်',
+   steps:['လူနာကို တည်ငြိမ်စေပြီး မလှုပ်ရှားစေပါနှင့်။','ကိုက်ခံရသောအင်္ဂါကို နှလုံးနှင့် အနီးအနား အဆင့်တွင်ထားကာ လှုပ်ရှားမှုမရှိစေရန် ပျဉ်ခံချည်ထားပါ။','လက်စွပ်၊ လက်ကောက်၊ ကျပ်သောအဝတ်များကို ချွတ်ပါ။','ချက်ချင်း ဆေးရုံသို့ ပို့ပါ။ ဖြစ်နိုင်လျှင် မြွေ၏ပုံစံကို မှတ်ထားပါ။','အနာကို မဖြတ်ပါနှင့်၊ ပါးစပ်ဖြင့် မစုတ်ပါနှင့်၊ ကြိုးဖြင့် တင်းကျပ်စွာ မချည်ပါနှင့်၊ ရေခဲမတင်ပါနှင့်။']},
+  {icon:'fa-fire-flame-simple', title:'မီးလောင် / ရေနွေးကျက်', tags:'မီး လောင် ရေနွေး အပူ',
+   steps:['အပူရင်းမြစ်မှ ဝေးရာသို့ ရွှေ့ပါ။','လောင်သောနေရာကို အေးသောရေ (ရေခဲမဟုတ်) ဖြင့် ၁၀ - ၂၀ မိနစ် ဆက်တိုက်ဆေးပါ။','ကပ်နေသောအဝတ်ကို မဆွဲဖြုတ်ပါနှင့်။ ပတ်ဝန်းကျင်ကိုသာ ဖြတ်ပါ။','သန့်ရှင်းသော အစိုဓာတ်မရှိသောအဝတ်ဖြင့် ပေါ့ပါးစွာ အုပ်ပါ။','ဘူးယောင်းအဖုများကို မကွဲစေပါနှင့်။ ကြီးမားသော၊ မျက်နှာ/လက်/ခြေ/အင်္ဂါဇာတ်ရှိ လောင်ကျွမ်းမှုများကို ဆေးရုံပို့ပါ။']},
+  {icon:'fa-brain', title:'လေဖြတ် လက္ခဏာများ', tags:'လေဖြတ် မျက်နှာ စကား',
+   steps:['မျက်နှာတစ်ဖက်ပြုတ်ကျခြင်း၊ လက်/ခြေတစ်ဖက် အားနည်းခြင်း၊ စကားမပီခြင်း တို့ကို စစ်ပါ။','ပေါ်ပေါက်လျှင် ချက်ချင်း ကယ်ဆယ်ရေးကိုခေါ်ပါ။ အချိန်သည် အလွန်အရေးကြီးသည်။','လူနာကို ခေါင်းနှင့်ပခုံး အနည်းငယ်မြှောက်ကာ အနားယူစေပါ။','အစားအသောက်၊ ဆေးမပေးပါနှင့်။','လက္ခဏာစတင်သည့်အချိန်ကို မှတ်ထားပါ။']},
+  {icon:'fa-house-flood-water', title:'ရေလွှမ်းမိုးမှု လုံခြုံရေး', tags:'ရေလွှမ်း ရေကြီး ရေဘေး မြစ်',
+   steps:['အမြင့်ပိုင်း ဘေးကင်းသောနေရာသို့ အချိန်မီ ရွှေ့ပါ။','အရေးကြီးစာရွက်စာတမ်း၊ ဆေးဝါး၊ သောက်ရေ၊ အစားအစာ၊ လက်ကိုင်ဓာတ်မီးကို အိတ်တစ်လုံးတွင် ကြိုပြင်ထားပါ။','စီးဆင်းနေသောရေထဲ မလျှောက်ပါနှင့်။ ရေ၁၅ စင်တီမီတာသာ စီးလျှင်ပင် လဲကျနိုင်သည်။','လျှပ်စစ်မီးကို ပိတ်ပါ။ ရေစိုနေသော ဝါယာကြိုးကို မထိပါနှင့်။','အကူအညီလိုပါက ကျွန်ုပ်တို့ အသင်းကို ချက်ချင်းဆက်သွယ်ပါ။']},
+  {icon:'fa-bolt', title:'လျှပ်စစ်ရှော့ဖြစ်ခြင်း', tags:'လျှပ်စစ် ရှော့ မီးလိုက်',
+   steps:['လူနာကို မကိုင်မီ လျှပ်စစ်ပါဝါကို အရင်ဖြတ်ပါ။','မဖြတ်နိုင်လျှင် ခြောက်သွေ့သော သစ်သား/ပလတ်စတစ်ဖြင့် လူနာကို ဝေးရာသို့ တွန်းဖယ်ပါ။','ကယ်ဆယ်ရေးကို ခေါ်ပါ။','အသက်ရှူရပ်နေပါက CPR စတင်ပါ။','အပေါ်ယံ လောင်ကျွမ်းမှုရှိပါက သန့်ရှင်းသောအဝတ်ဖြင့် အုပ်ပါ။']}
+];
+const NATIONAL = [];
+
+/* ================= Render ================= */
+function logoHTML(a, cls){
+  const l = safeLogo(a && a.logo);
+  return l ? `<img src="${esc(l)}" alt="" class="${cls || 'w-full h-full object-contain'}">` : '<i class="fa-solid fa-truck-medical text-xl text-white"></i>';
+}
+function applyCfg(){
+  const m = mainAssoc();
+  $('h-name').textContent = m.name;
+  $('h-sub').textContent = m.sub || '';
+  $('h-logo').innerHTML = logoHTML(m);
+  $('h-alert').textContent = cfg.alert;
+  $('h-amb').textContent = 'လူနာတင်ယာဉ် (' + toMM(cfg.ambulances) + ') စီး အသင့်ရှိသည်';
+  $('h-call').href = telHref(m.phone);
+  $('svc-call').href = telHref(m.phone);
+  document.title = m.name;
+  // target selector
+  if (!cfg.assocs.some(a => a.id === targetId)) targetId = m.id;
+  const sel = $('target-sel');
+  sel.innerHTML = cfg.assocs.map(a => `<option value="${esc(a.id)}">${esc(a.name)}</option>`).join('');
+  sel.value = targetId;
+  $('target-wrap').classList.toggle('hidden', cfg.assocs.length < 2);
+  renderContacts();
+}
+const COLORS = {red:'bg-red-50 text-red-600', sky:'bg-sky-50 text-sky-600', emerald:'bg-emerald-50 text-emerald-600', orange:'bg-orange-50 text-orange-600', blue:'bg-blue-50 text-blue-600', cyan:'bg-cyan-50 text-cyan-600'};
+$('svc-list').innerHTML = SERVICES.map(s => `
+  <div class="bg-white rounded-2xl p-3.5 shadow-sm border border-slate-100 flex items-start gap-3">
+    <div class="w-11 h-11 rounded-xl ${COLORS[s.color]} flex items-center justify-center text-lg shrink-0"><i class="fa-solid ${s.icon}"></i></div>
+    <div><h3 class="text-sm font-bold">${esc(s.title)}</h3><p class="text-xs text-slate-500 mt-0.5">${esc(s.desc)}</p></div>
+  </div>`).join('');
+
+function renderGuides(){
+  const q = $('g-search').value.trim().toLowerCase();
+  const list = GUIDES.filter(g => !q || (g.title + ' ' + g.tags).toLowerCase().includes(q));
+  $('g-list').innerHTML = list.length ? list.map(g => `
+    <div class="guide-card bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden ${q ? 'open' : ''}">
+      <button class="w-full flex items-center gap-3 p-3.5 text-left" onclick="this.parentElement.classList.toggle('open')">
+        <div class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center shrink-0"><i class="fa-solid ${g.icon}"></i></div>
+        <span class="flex-1 text-sm font-bold">${esc(g.title)}</span><i class="fa-solid fa-chevron-down text-slate-400 text-xs chev"></i>
+      </button>
+      <div class="guide-body"><ol class="px-4 pb-4 space-y-2 text-xs text-slate-700">
+        ${g.steps.map((s, n) => `<li class="flex gap-2"><span class="w-5 h-5 rounded-full bg-red-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">${toMM(n + 1)}</span><span>${esc(s)}</span></li>`).join('')}
+      </ol></div>
+    </div>`).join('') : '<p class="text-center text-xs text-slate-400 py-8">ရှာဖွေမှု မတွေ့ပါ</p>';
+}
+function renderContacts(){
+  const q = ($('c-search').value || '').trim().toLowerCase();
+  const items = cfg.assocs.map(a => ({name:a.name, desc:a.sub || 'ကယ်ဆယ်ရေးအသင်း', num:a.phone, logo:a.logo, icon:'fa-truck-medical', color:'bg-red-600'})).concat(NATIONAL)
+    .filter(c => !q || (c.name + c.desc + c.num).toLowerCase().includes(q));
+  $('c-list').innerHTML = items.length ? items.map(c => `
+    <a href="${esc(telHref(c.num))}" class="bg-white rounded-2xl p-3.5 shadow-sm border border-slate-100 flex items-center gap-3 active:scale-[.98] transition">
+      <div class="w-11 h-11 rounded-xl ${safeLogo(c.logo) ? 'bg-white border border-slate-200' : c.color + ' text-white'} flex items-center justify-center shrink-0 overflow-hidden">
+        ${safeLogo(c.logo) ? `<img src="${esc(safeLogo(c.logo))}" alt="" class="w-full h-full object-contain">` : `<i class="fa-solid ${c.icon}"></i>`}</div>
+      <div class="flex-1 min-w-0"><h3 class="text-sm font-bold truncate">${esc(c.name)}</h3><p class="text-[11px] text-slate-500 truncate">${esc(c.desc)}</p><p class="text-xs font-bold text-red-600">${esc(c.num)}</p></div>
+      <div class="w-9 h-9 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0"><i class="fa-solid fa-phone"></i></div>
+    </a>`).join('') : '<p class="text-center text-xs text-slate-400 py-8">ရှာဖွေမှု မတွေ့ပါ</p>';
+}
+
+/* ================= Tabs & incident ================= */
+function showTab(t){
+  ['home','services','aid','contacts'].forEach(x => $('tab-' + x).classList.toggle('hidden', x !== t));
+  document.querySelectorAll('.nav-btn').forEach(b => { const on = b.dataset.tab === t; b.classList.toggle('active', on); b.classList.toggle('text-slate-400', !on); });
+  $('main').scrollTop = 0;
+}
+document.querySelectorAll('.nav-btn').forEach(b => b.addEventListener('click', () => showTab(b.dataset.tab)));
+let incident = 'အရေးပေါ်လူနာ';
+document.querySelectorAll('.incident-btn').forEach(btn => btn.addEventListener('click', () => {
+  document.querySelectorAll('.incident-btn').forEach(b => { b.classList.remove('border-2','border-red-600','bg-red-50','text-red-700'); b.classList.add('border','border-slate-200','bg-slate-50','text-slate-700'); });
+  btn.classList.remove('border','border-slate-200','bg-slate-50','text-slate-700'); btn.classList.add('border-2','border-red-600','bg-red-50','text-red-700');
+  incident = btn.dataset.type; $('type-badge').textContent = btn.querySelector('span').textContent;
+}));
+
+/* ================= GPS ================= */
+let coords = null;
+function getGPS(timeout, showMsg){
+  return new Promise(resolve => {
+    if (!navigator.geolocation){ if (showMsg) toast('ဤစက်တွင် GPS မရနိုင်ပါ', false); return resolve(null); }
+    if (showMsg) toast('GPS ရှာဖွေနေပါသည်...');
+    navigator.geolocation.getCurrentPosition(p => {
+      coords = {lat: p.coords.latitude, lng: p.coords.longitude, acc: Math.round(p.coords.accuracy)};
+      const el = $('gps-ok'); el.classList.remove('hidden');
+      el.innerHTML = '<i class="fa-solid fa-check-circle"></i> GPS ရယူပြီး (' + coords.lat.toFixed(5) + ', ' + coords.lng.toFixed(5) + ')';
+      if (showMsg) toast('GPS တည်နေရာ ရယူပြီးပါပြီ');
+      resolve(coords);
+    }, () => { if (showMsg) toast('GPS ခွင့်ပြုချက်ပေးပါ သို့မဟုတ် လိပ်စာကိုယ်တိုင်ရိုက်ပါ', false); resolve(null); },
+    {enableHighAccuracy:true, timeout: timeout || 8000, maximumAge:30000});
+  });
+}
+
+/* ================= Message & sending ================= */
+function nowStr(){ try { return new Date().toLocaleString('en-GB', {timeZone:'Asia/Yangon'}); } catch (e) { return new Date().toISOString(); } }
+function mapLink(){ return coords ? 'https://maps.google.com/?q=' + coords.lat + ',' + coords.lng : ''; }
+function buildMsg(quick){
+  const a = target();
+  const loc = $('f-loc').value.trim(), phone = $('f-phone').value.trim(), count = $('f-count').value.trim(), note = $('f-note').value.trim();
+  const L = ['🚨 SOS အရေးပေါ်အကူအညီတောင်းခံမှု', 'အသင်း: ' + a.name, 'အမျိုးအစား: ' + (quick && incident === 'အရေးပေါ်လူနာ' && !loc ? 'အရေးပေါ် (SOS ခလုတ်)' : incident), 'အချိန်: ' + nowStr()];
+  if (coords) L.push('📍 တည်နေရာ (GPS): ' + coords.lat.toFixed(6) + ', ' + coords.lng.toFixed(6) + ' (±' + coords.acc + 'မီတာ)', 'Map: ' + mapLink());
+  else L.push('📍 GPS မရရှိပါ');
+  if (loc) L.push('လိပ်စာ: ' + loc);
+  if (phone) L.push('ဆက်သွယ်ရန်: ' + phone);
+  if (count) L.push('အရေအတွက်: ' + count);
+  if (note) L.push('အခြေအနေ: ' + note);
+  return L.join('\n');
+}
+function smsLink(msg, phone){
+  const sep = /iPhone|iPad|iPod/i.test(navigator.userAgent) ? '&' : '?';
+  return 'sms:' + String(phone).replace(/[^\d+]/g, '') + sep + 'body=' + encodeURIComponent(msg);
+}
+async function tg(method, body){
+  const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 15000);
+  try {
+    const r = await fetch('https://api.telegram.org/bot' + encodeURIComponent(cfg.tgToken) + '/' + method, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body), signal: ctl.signal});
+    const j = await r.json();
+    if (!j.ok) throw new Error(j.description || 'telegram error');
+    return j;
+  } finally { clearTimeout(t); }
+}
+async function dispatch(msg, a, extra){
+  const hasTg = cfg.tgToken && a.chatId, hasHook = !!cfg.hook;
+  if (!hasTg && !hasHook) return {ok:false, reason:'noendpoint'};
+  if (navigator.onLine === false) return {ok:false, reason:'offline'};
+  let ok = false;
+  if (hasTg){
+    try {
+      await tg('sendMessage', {chat_id:a.chatId, text:msg, disable_web_page_preview:true});
+      ok = true;
+      if (coords) { try { await tg('sendLocation', {chat_id:a.chatId, latitude:coords.lat, longitude:coords.lng}); } catch (e) {} }
+    } catch (e) {}
+  }
+  if (hasHook){
+    try {
+      await fetch(cfg.hook, {method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body: JSON.stringify(Object.assign({association:a.name, message:msg, lat:coords ? coords.lat : null, lng:coords ? coords.lng : null, map:mapLink(), time:nowStr()}, extra || {}))});
+      ok = true;
+    } catch (e) {}
+  }
+  return {ok, reason: ok ? '' : 'error'};
+}
+
+/* ================= SOS flow (overlay) ================= */
+let cdTimer = null, sosBusy = false;
+function ovShow(which){ ['ov-count','ov-sending','ov-done'].forEach(x => $(x).classList.toggle('hidden', x !== which)); $('sos-ov').classList.remove('hidden'); }
+function closeOv(){ $('sos-ov').classList.add('hidden'); sosBusy = false; }
+function startSOS(){
+  if (sosBusy) return; sosBusy = true;
+  let n = 3; $('ov-num').textContent = toMM(n); ovShow('ov-count');
+  if (navigator.vibrate) try { navigator.vibrate(100); } catch (e) {}
+  cdTimer = setInterval(() => { n--; if (n <= 0){ clearInterval(cdTimer); runSOS(true); } else $('ov-num').textContent = toMM(n); }, 1000);
+}
+function cancelSOS(){ clearInterval(cdTimer); closeOv(); }
+function sendForm(){
+  if (sosBusy) return;
+  if (!$('f-loc').value.trim() && !coords && !confirm('တည်နေရာ မထည့်ရသေးပါ။ GPS ဖြင့် ရှာပြီး ပို့ပါမည်။')) return;
+  sosBusy = true; runSOS(false);
+}
+async function runSOS(quick){
+  ovShow('ov-sending');
+  await getGPS(8000, false);
+  const a = target(), msg = buildMsg(quick);
+  const res = await dispatch(msg, a, {type: incident, phone: $('f-phone').value.trim(), address: $('f-loc').value.trim()});
+  ovShow('ov-done');
+  const call = `<a href="${esc(telHref(a.phone))}" class="block w-full bg-white text-red-700 font-bold py-3 rounded-2xl"><i class="fa-solid fa-phone mr-2"></i>${esc(a.name)} သို့ ဖုန်းခေါ်မည်</a>`;
+  const close = `<button onclick="closeOv()" class="block w-full bg-white/15 border border-white/30 text-white font-semibold py-2.5 rounded-2xl">ပိတ်မည်</button>`;
+  if (res.ok){
+    $('ov-icon').innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+    $('ov-title').textContent = 'ရုံးသို့ ပေးပို့ပြီးပါပြီ';
+    $('ov-text').textContent = (coords ? 'သင့်တည်နေရာနှင့်တကွ ' : 'GPS မရသဖြင့် လိပ်စာအချက်အလက်ဖြင့် ') + 'ပေးပို့ပြီး ဖြစ်သည်။ အဖွဲ့မှ မကြာမီ ဆက်သွယ်ပါမည်။ အရေးကြီးပါက ဖုန်းဆက်ပါ။';
+    $('ov-btns').innerHTML = call + close;
+  } else {
+    const why = res.reason === 'noendpoint' ? 'ဤအသင်းအတွက် တိုက်ရိုက်ပို့ရန် ချိတ်ဆက်မှု မသတ်မှတ်ရသေးပါ။' : res.reason === 'offline' ? 'အင်တာနက် မရပါ။' : 'ပေးပို့၍ မရပါ။';
+    $('ov-icon').innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+    $('ov-title').textContent = 'တိုက်ရိုက်ပေးပို့၍ မရပါ';
+    $('ov-text').textContent = why + ' စာတိုဖြင့် ပို့ပါ သို့မဟုတ် ဖုန်းခေါ်ပါ။';
+    $('ov-btns').innerHTML = `<a href="${esc(smsLink(msg, a.phone))}" class="block w-full bg-amber-400 text-slate-900 font-bold py-3 rounded-2xl"><i class="fa-solid fa-comment-sms mr-2"></i>စာတိုဖြင့် ပို့မည် (GPS ပါ)</a>` + call + close;
+  }
+}
+async function shareForm(){
+  if (!$('f-loc').value.trim() && !coords) await getGPS(8000, true);
+  const msg = buildMsg(false);
+  if (navigator.share){ try { await navigator.share({title:'SOS', text:msg}); } catch (e) {} }
+  else if (navigator.clipboard){ try { await navigator.clipboard.writeText(msg); toast('စာကို ကူးယူပြီးပါပြီ။ Viber/Messenger တွင် paste လုပ်ပါ'); } catch (e) { toast('မျှဝေ၍မရပါ', false); } }
+  else toast('မျှဝေ၍မရပါ', false);
+}
+
+/* ================= Admin ================= */
+function openAdmin(){ $('admin').classList.remove('hidden'); $('admin-gate').classList.remove('hidden'); $('admin-body').classList.add('hidden'); $('a-pin').value = ''; }
+function closeAdmin(){ $('admin').classList.add('hidden'); }
+function unlockAdmin(){
+  if ($('a-pin').value !== cfg.pin){ toast('PIN မှားနေပါသည်', false); return; }
+  $('admin-gate').classList.add('hidden'); $('admin-body').classList.remove('hidden');
+  $('a-amb').value = cfg.ambulances; $('a-alert').value = cfg.alert; $('a-newpin').value = '';
+  $('a-tok').value = cfg.tgToken; $('a-hook').value = cfg.hook; $('a-remote').value = cfg.remoteUrl; $('a-json').value = '';
+  $('assoc-form').classList.add('hidden'); renderAssocAdmin();
+}
+function renderAssocAdmin(){
+  $('a-assoc-list').innerHTML = cfg.assocs.map(a => `
+    <div class="flex items-center gap-2.5 p-2.5 bg-slate-50 border border-slate-200 rounded-xl">
+      <div class="w-10 h-10 rounded-lg bg-white border border-slate-200 flex items-center justify-center overflow-hidden shrink-0">${safeLogo(a.logo) ? `<img src="${esc(safeLogo(a.logo))}" alt="" class="w-full h-full object-contain">` : '<i class="fa-solid fa-truck-medical text-red-500"></i>'}</div>
+      <div class="flex-1 min-w-0"><p class="text-xs font-bold truncate">${esc(a.name)} ${a.id === cfg.mainId ? '<span class="text-[9px] bg-red-600 text-white px-1.5 py-0.5 rounded-full align-middle">ပင်မ</span>' : ''}</p>
+        <p class="text-[10px] text-slate-500 truncate">${esc(a.phone)} · ${a.chatId ? 'Telegram ချိတ်ပြီး' : 'Telegram မချိတ်ရသေး'}</p></div>
+      ${a.id !== cfg.mainId ? `<button onclick="setMain('${esc(a.id)}')" class="text-[10px] font-bold text-emerald-700 px-1.5" title="ပင်မအဖြစ်သတ်မှတ်">ပင်မ</button>` : ''}
+      <button onclick="editAssoc('${esc(a.id)}')" class="text-slate-600 px-1.5"><i class="fa-solid fa-pen text-xs"></i></button>
+      <button onclick="delAssoc('${esc(a.id)}')" class="text-red-600 px-1.5"><i class="fa-solid fa-trash text-xs"></i></button>
+    </div>`).join('');
+}
+let editId = null, editLogo = '';
+function setAfLogo(){ $('af-logo').innerHTML = safeLogo(editLogo) ? `<img src="${esc(editLogo)}" alt="" class="w-full h-full object-contain">` : '<i class="fa-solid fa-image"></i>'; }
+function editAssoc(id){
+  const a = id ? cfg.assocs.find(x => x.id === id) : null;
+  editId = a ? a.id : null; editLogo = a ? (a.logo || '') : '';
+  $('af-title').textContent = a ? 'အသင်းအချက်အလက် ပြင်ဆင်ရန်' : 'အသင်းအသစ် ထည့်ရန်';
+  $('af-name').value = a ? a.name : ''; $('af-sub').value = a ? (a.sub || '') : ''; $('af-phone').value = a ? a.phone : ''; $('af-chat').value = a ? (a.chatId || '') : '';
+  setAfLogo(); $('assoc-form').classList.remove('hidden'); $('assoc-form').scrollIntoView({behavior:'smooth', block:'center'});
+}
+function resizeLogo(file){
+  return new Promise((res, rej) => {
+    const fr = new FileReader();
+    fr.onerror = () => rej();
+    fr.onload = () => {
+      const img = new Image();
+      img.onerror = () => rej();
+      img.onload = () => {
+        const S = 192, c = document.createElement('canvas'); c.width = c.height = S;
+        const ctx = c.getContext('2d'), r = Math.min(S / img.width, S / img.height), w = img.width * r, h = img.height * r;
+        ctx.drawImage(img, (S - w) / 2, (S - h) / 2, w, h);
+        res(c.toDataURL('image/png'));
+      };
+      img.src = fr.result;
+    };
+    fr.readAsDataURL(file);
+  });
+}
+async function pickLogo(inp){
+  const f = inp.files && inp.files[0]; if (!f) return;
+  try { editLogo = await resizeLogo(f); setAfLogo(); toast('Logo ရွေးချယ်ပြီးပါပြီ။ "သိမ်းမည်" ကိုနှိပ်ပါ'); } catch (e) { toast('ပုံဖတ်၍မရပါ', false); }
+  inp.value = '';
+}
+function clearLogo(){ editLogo = ''; setAfLogo(); }
+function saveAssoc(){
+  const name = $('af-name').value.trim(), phone = $('af-phone').value.trim();
+  if (!name){ toast('အသင်းအမည် ထည့်ပါ', false); return; }
+  if (!/^[\d+\-\s]{3,20}$/.test(phone)){ toast('ဖုန်းနံပါတ် မှန်ကန်စွာ ထည့်ပါ', false); return; }
+  const data = {name, sub:$('af-sub').value.trim(), phone, chatId:$('af-chat').value.trim(), logo:editLogo};
+  if (editId){ Object.assign(cfg.assocs.find(x => x.id === editId), data); }
+  else { cfg.assocs.push(Object.assign({id:'a' + Date.now().toString(36)}, data)); }
+  persist(); applyCfg(); renderAssocAdmin(); $('assoc-form').classList.add('hidden'); toast('အသင်း သိမ်းဆည်းပြီးပါပြီ');
+}
+function setMain(id){ cfg.mainId = id; persist(); applyCfg(); renderAssocAdmin(); toast('ပင်မအသင်း သတ်မှတ်ပြီးပါပြီ'); }
+function delAssoc(id){
+  if (cfg.assocs.length < 2){ toast('အနည်းဆုံး အသင်းတစ်ခု ရှိရမည်', false); return; }
+  if (!confirm('ဤအသင်းကို ဖျက်မလား?')) return;
+  cfg.assocs = cfg.assocs.filter(a => a.id !== id);
+  if (cfg.mainId === id) cfg.mainId = cfg.assocs[0].id;
+  persist(); applyCfg(); renderAssocAdmin();
+}
+function saveAdmin(){
+  cfg.ambulances = Math.max(0, parseInt($('a-amb').value, 10) || 0);
+  cfg.alert = $('a-alert').value.trim() || DEFAULTS.alert;
+  cfg.tgToken = $('a-tok').value.trim();
+  const hook = $('a-hook').value.trim();
+  if (hook && !/^https:\/\//.test(hook)){ toast('Webhook URL သည် https:// ဖြင့် စရမည်', false); return; }
+  cfg.hook = hook;
+  const rem = $('a-remote').value.trim();
+  if (rem && !/^https:\/\//.test(rem)){ toast('Remote Config URL သည် https:// ဖြင့် စရမည်', false); return; }
+  cfg.remoteUrl = rem;
+  const np = $('a-newpin').value.trim();
+  if (np){ if (np.length < 4){ toast('PIN သည် အနည်းဆုံး ၄ လုံးရှိရမည်', false); return; } cfg.pin = np; }
+  persist(); applyCfg(); closeAdmin(); toast('သိမ်းဆည်းပြီးပါပြီ');
+}
+function resetAdmin(){
+  if (!confirm('မူလတန်ဖိုးများသို့ ပြန်ထားမလား? (အသင်းများ၊ Logo များ ပျက်သွားမည်)')) return;
+  cfg = clone(DEFAULTS); persist(); applyCfg(); closeAdmin(); toast('မူလအတိုင်း ပြန်ထားပြီးပါပြီ');
+}
+async function testSend(){
+  cfg.tgToken = $('a-tok').value.trim(); cfg.hook = $('a-hook').value.trim();
+  const a = cfg.assocs.find(x => x.id === targetId) || mainAssoc();
+  toast('စမ်းသပ်စာ ပို့နေပါသည်...');
+  const r = await dispatch('✅ စမ်းသပ်မှု - ' + a.name + '\nSOS ချိတ်ဆက်မှု အလုပ်လုပ်နေပါသည်။\n' + nowStr(), a, {test:true});
+  toast(r.ok ? 'ပို့ပြီးပါပြီ။ ရုံးတွင် လက်ခံရရှိမရှိ စစ်ပါ' : 'ပို့၍မရပါ။ Token / Chat ID / အင်တာနက် စစ်ပါ', r.ok);
+}
+const SYNC_KEYS = ['assocs','mainId','alert','ambulances','tgToken','hook'];
+function mergeRemote(j){
+  if (!j || typeof j !== 'object') return false;
+  if (Array.isArray(j.assocs)){
+    const clean = j.assocs.filter(a => a && a.id && a.name && a.phone).map(a => ({id:String(a.id), name:String(a.name), sub:String(a.sub || ''), phone:String(a.phone), chatId:String(a.chatId || ''), logo:safeLogo(a.logo)}));
+    if (!clean.length) return false; cfg.assocs = clean;
+    cfg.mainId = clean.some(a => a.id === j.mainId) ? j.mainId : clean[0].id;
+  }
+  if (typeof j.alert === 'string' && j.alert) cfg.alert = j.alert;
+  if (Number.isFinite(+j.ambulances)) cfg.ambulances = Math.max(0, +j.ambulances);
+  if (typeof j.tgToken === 'string') cfg.tgToken = j.tgToken;
+  if (typeof j.hook === 'string' && (!j.hook || /^https:\/\//.test(j.hook))) cfg.hook = j.hook;
+  return true;
+}
+function exportCfg(){
+  const o = {}; SYNC_KEYS.forEach(k => o[k] = cfg[k]);
+  $('a-json').value = JSON.stringify(o);
+  if (navigator.clipboard) navigator.clipboard.writeText($('a-json').value).then(() => toast('JSON ကူးယူပြီးပါပြီ')).catch(() => toast('JSON ထုတ်ပြီးပါပြီ'));
+  else toast('JSON ထုတ်ပြီးပါပြီ');
+}
+function importCfg(){
+  try { if (!mergeRemote(JSON.parse($('a-json').value))) throw 0; persist(); applyCfg(); renderAssocAdmin(); toast('Import လုပ်ပြီးပါပြီ'); }
+  catch (e) { toast('JSON မမှန်ကန်ပါ', false); }
+}
+async function loadRemote(){
+  if (!cfg.remoteUrl) return;
+  try {
+    const ctl = new AbortController(); setTimeout(() => ctl.abort(), 8000);
+    const r = await fetch(cfg.remoteUrl, {cache:'no-store', signal:ctl.signal});
+    if (!r.ok) return;
+    if (mergeRemote(await r.json())){ persist(); applyCfg(); }
+  } catch (e) {}
+}
+
+/* ================= Init ================= */
+applyCfg(); renderGuides(); loadRemote();
+</script>
+</body>
+</html>
