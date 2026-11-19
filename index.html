@@ -793,12 +793,17 @@ async function publishFB(){
   try {
     const r1 = await fetch('https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=' + encodeURIComponent(key), {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email:em, password:pw, returnSecureToken:true})});
     const j1 = await r1.json();
-    if (!r1.ok || !j1.idToken) throw new Error('login');
+    if (!r1.ok || !j1.idToken) throw new Error('login:' + ((j1.error && j1.error.message) || r1.status));
     const r2 = await fetch(url + '/config.json?auth=' + encodeURIComponent(j1.idToken), {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(syncPayload())});
-    if (!r2.ok) throw new Error('write');
+    if (!r2.ok){ let m = ''; try { m = (await r2.json()).error || ''; } catch (e2) {} throw new Error('write:' + r2.status + ' ' + m); }
     $('a-fbpass').value = '';
     toast('အသုံးပြုသူအားလုံးသို့ ပို့ပြီးပါပြီ');
-  } catch (e) { toast(e.message === 'login' ? 'Email / Password မှားနေသည်' : 'ပို့၍မရပါ။ Rules / URL / အင်တာနက် စစ်ပါ', false); }
+  } catch (e) {
+    const m = String(e.message || e);
+    if (m.indexOf('login:') === 0) toast('Login မရပါ (' + m.slice(6) + ')။ Email/Password/API Key စစ်ပါ', false);
+    else if (m.indexOf('write:') === 0) toast('Database ရေး၍မရပါ (' + m.slice(6) + ')။ Rules ကို Publish လုပ်ထားလား စစ်ပါ', false);
+    else toast('ချိတ်ဆက်၍မရပါ (' + m + ')။ Database URL / အင်တာနက် စစ်ပါ', false);
+  }
 }
 async function loadRemote(){
   const url = cfg.fbUrl ? cfg.fbUrl + '/config.json' : cfg.remoteUrl;
