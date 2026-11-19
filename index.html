@@ -69,6 +69,11 @@
 
     <!-- HOME -->
     <section id="tab-home" class="tab-content p-4 space-y-4">
+      <div id="gps-card" class="hidden bg-blue-50 border border-blue-200 rounded-2xl p-3 flex items-start gap-2.5">
+        <div class="w-8 h-8 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center shrink-0"><i class="fa-solid fa-location-crosshairs"></i></div>
+        <div class="flex-1"><p id="gps-card-text" class="text-xs text-blue-900"></p>
+          <button id="gps-card-btn" onclick="enableGPS()" class="mt-2 bg-blue-600 text-white text-xs font-bold px-4 py-2 rounded-xl">တည်နေရာ ခွင့်ပြုမည်</button></div>
+      </div>
       <div class="bg-amber-50 border border-amber-200 rounded-2xl p-3 flex items-start gap-2.5">
         <div class="w-8 h-8 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0"><i class="fa-solid fa-triangle-exclamation"></i></div>
         <div class="flex-1"><span class="text-xs font-bold text-amber-900">အရေးပေါ် အသိပေးချက်</span><p id="h-alert" class="text-xs text-amber-800 mt-0.5"></p></div>
@@ -1019,9 +1024,27 @@ function delCon(id){
   cfg.contacts = cfg.contacts.filter(c => c.id !== id); persist(); applyCfg(); renderConAdmin();
 }
 
+/* ================= GPS on entry ================= */
+async function checkGPS(){
+  if (!navigator.geolocation) return;
+  let st = 'prompt';
+  try { st = (await navigator.permissions.query({name:'geolocation'})).state; } catch (e) {}
+  const card = $('gps-card'), txt = $('gps-card-text'), btn = $('gps-card-btn');
+  if (st === 'granted'){ card.classList.add('hidden'); getGPS(10000, false); }
+  else if (st === 'denied'){
+    card.classList.remove('hidden'); btn.classList.add('hidden');
+    txt.textContent = 'Location ကို ပိတ်ထားသည်။ SOS တွင် တည်နေရာ မပါပါ။ ဖုန်း Settings → Apps → ဤ App → Permissions → Location ကို "Allow" လုပ်ပြီး ဖုန်း၏ Location (GPS) ကိုလည်း ဖွင့်ပါ။';
+  } else {
+    card.classList.remove('hidden'); btn.classList.remove('hidden');
+    txt.textContent = 'အရေးပေါ်အချိန် သင့်တည်နေရာကို အသင်းသို့ အလိုအလျောက် ပို့နိုင်ရန် Location ခွင့်ပြုချက် ပေးပါ။';
+  }
+}
+async function enableGPS(){ await getGPS(12000, true); checkGPS(); }
+document.addEventListener('visibilitychange', () => { if (!document.hidden) checkGPS(); });
+
 /* ================= Init ================= */
 if (cfgReset) persist();
-applyCfg(); renderGuides(); loadRemote();
+applyCfg(); renderGuides(); loadRemote(); checkGPS();
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) { window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {})); }
 </script>
 </body>
