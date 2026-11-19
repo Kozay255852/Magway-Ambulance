@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#b91c1c">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
 <title>ရောင်စုံမေတ္တာ ကယ်ဆယ်ရေးအသင်း</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -123,6 +127,11 @@
           <p class="text-[11px] text-slate-300">ရေငုပ်ရှာဖွေရေးနှင့် ကယ်ဆယ်ရေးအဖွဲ့ ၂၄ နာရီ အသင့်</p></div>
         <div class="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center text-emerald-400 text-xl shrink-0"><i class="fa-solid fa-truck-fast"></i></div>
       </div>
+
+      <div id="don-card" class="hidden bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-3xl p-4 shadow-md flex items-center justify-between gap-3">
+        <div class="min-w-0"><h4 class="text-sm font-bold"><i class="fa-solid fa-hand-holding-heart mr-1.5"></i>အလှူငွေ လှူဒါန်းရန်</h4><p id="don-note" class="text-[11px] text-emerald-50 mt-0.5"></p></div>
+        <button onclick="openDonate()" class="bg-white text-emerald-700 text-xs font-bold px-4 py-2.5 rounded-xl shrink-0 active:scale-95 transition">လှူမည်</button>
+      </div>
     </section>
 
     <!-- SERVICES -->
@@ -171,6 +180,18 @@
     <button class="nav-btn flex flex-col items-center py-2 text-slate-400" data-tab="aid"><i class="fa-solid fa-kit-medical text-lg"></i><span class="text-[10px] font-semibold mt-0.5">ရှေးဦး</span></button>
     <button class="nav-btn flex flex-col items-center py-2 text-slate-400" data-tab="contacts"><i class="fa-solid fa-address-book text-lg"></i><span class="text-[10px] font-semibold mt-0.5">ဖုန်းစာရင်း</span></button>
   </nav>
+
+  <!-- DONATE MODAL -->
+  <div id="don-ov" class="hidden absolute inset-0 z-[52] bg-black/60 flex items-end justify-center">
+    <div class="bg-white w-full rounded-t-3xl p-5 max-h-[90%] overflow-y-auto app-scroll">
+      <div class="flex items-center justify-between mb-1">
+        <h3 class="font-bold text-sm"><i class="fa-solid fa-hand-holding-heart text-emerald-600 mr-1.5"></i>အလှူငွေ လှူဒါန်းရန်</h3>
+        <button onclick="closeDonate()" class="w-8 h-8 rounded-full bg-slate-100"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <p class="text-[11px] text-slate-500 mb-3">ငွေမလွှဲမီ အကောင့်အမည်နှင့် နံပါတ်ကို ပြန်လည်စစ်ဆေးပါ။ လှူဒါန်းမှုအတွက် ကျေးဇူးတင်ပါသည်။</p>
+      <div id="don-list" class="space-y-3"></div>
+    </div>
+  </div>
 
   <!-- MAP PICKER -->
   <div id="pick-ov" class="hidden absolute inset-0 z-[55] bg-white flex flex-col">
@@ -249,19 +270,63 @@
         </div>
 
         <!-- General -->
-        <h4 class="text-xs font-bold text-red-700 mt-5 mb-1"><i class="fa-solid fa-sliders mr-1"></i>၂။ အထွေထွေ</h4>
+        <h4 class="text-xs font-bold text-red-700 mt-5 mb-1"><i class="fa-solid fa-address-book mr-1"></i>ဖုန်းစာရင်း ထပ်တိုးရန်</h4>
+        <div id="a-con-list" class="space-y-2"></div>
+        <button onclick="editCon(null)" class="w-full mt-2 border-2 border-dashed border-slate-300 text-slate-600 text-xs font-bold py-2.5 rounded-xl"><i class="fa-solid fa-plus mr-1"></i>ဖုန်းနံပါတ် ထည့်မည်</button>
+        <div id="con-form" class="hidden mt-3 p-3 bg-slate-50 border border-slate-200 rounded-2xl">
+          <h5 id="cf-title" class="text-xs font-bold"></h5>
+          <div class="flex items-center gap-3 mt-2">
+            <div id="cf-logo" class="w-16 h-16 rounded-2xl bg-white border border-slate-200 flex items-center justify-center overflow-hidden text-slate-300 text-2xl"><i class="fa-solid fa-image"></i></div>
+            <div class="flex-1">
+              <label class="inline-block bg-slate-800 text-white text-[11px] font-bold px-3 py-2 rounded-xl cursor-pointer"><i class="fa-solid fa-upload mr-1"></i>Logo ရွေးရန်<input type="file" accept="image/*" class="hidden" onchange="pickCLogo(this)"></label>
+              <button type="button" onclick="clearCLogo()" class="text-[11px] text-red-600 font-semibold ml-2">ဖျက်မည်</button>
+            </div>
+          </div>
+          <label class="lbl">အမည်</label><input id="cf-name" class="inp">
+          <label class="lbl">ဖော်ပြချက်</label><input id="cf-desc" class="inp">
+          <label class="lbl">ဖုန်းနံပါတ်</label><input id="cf-phone" type="tel" class="inp">
+          <div class="grid grid-cols-2 gap-2 mt-3">
+            <button onclick="saveCon()" class="bg-red-600 text-white text-xs font-bold py-2.5 rounded-xl">သိမ်းမည်</button>
+            <button onclick="$('con-form').classList.add('hidden')" class="bg-slate-200 text-slate-700 text-xs font-bold py-2.5 rounded-xl">မလုပ်တော့ပါ</button>
+          </div>
+        </div>
+
+        <h4 class="text-xs font-bold text-red-700 mt-5 mb-1"><i class="fa-solid fa-hand-holding-heart mr-1"></i>၂။ အလှူငွေ လက်ခံရန် (KPay စသည်)</h4>
+        <label class="lbl">ပင်မစာမျက်နှာတွင် ပြမည့် စာ</label><input id="a-donnote" class="inp">
+        <div id="a-don-list" class="space-y-2 mt-2"></div>
+        <button onclick="editDon(null)" class="w-full mt-2 border-2 border-dashed border-slate-300 text-slate-600 text-xs font-bold py-2.5 rounded-xl"><i class="fa-solid fa-plus mr-1"></i>အလှူငွေ လက်ခံမည့် နည်းလမ်း ထည့်မည်</button>
+        <div id="don-form" class="hidden mt-3 p-3 bg-slate-50 border border-slate-200 rounded-2xl">
+          <h5 id="df-title" class="text-xs font-bold"></h5>
+          <label class="lbl">နည်းလမ်း</label><input id="df-label" list="df-labels" class="inp" placeholder="KPay">
+          <datalist id="df-labels"><option value="KPay"><option value="Wave Pay"><option value="AYA Pay"><option value="CB Pay"><option value="ဘဏ်စာရင်း"></datalist>
+          <label class="lbl">အကောင့်အမည်</label><input id="df-name" class="inp">
+          <label class="lbl">ဖုန်း / အကောင့်နံပါတ်</label><input id="df-phone" class="inp" inputmode="tel">
+          <div class="flex items-center gap-3 mt-3">
+            <div id="df-qr" class="w-20 h-20 rounded-xl bg-white border border-slate-200 flex items-center justify-center overflow-hidden text-slate-300 text-2xl"><i class="fa-solid fa-qrcode"></i></div>
+            <div class="flex-1">
+              <label class="inline-block bg-slate-800 text-white text-[11px] font-bold px-3 py-2 rounded-xl cursor-pointer"><i class="fa-solid fa-upload mr-1"></i>QR ပုံ ရွေးရန်<input type="file" accept="image/*" class="hidden" onchange="pickQR(this)"></label>
+              <button type="button" onclick="clearQR()" class="text-[11px] text-red-600 font-semibold ml-2">ဖျက်မည်</button>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-2 mt-3">
+            <button onclick="saveDon()" class="bg-red-600 text-white text-xs font-bold py-2.5 rounded-xl">သိမ်းမည်</button>
+            <button onclick="$('don-form').classList.add('hidden')" class="bg-slate-200 text-slate-700 text-xs font-bold py-2.5 rounded-xl">မလုပ်တော့ပါ</button>
+          </div>
+        </div>
+
+        <h4 class="text-xs font-bold text-red-700 mt-5 mb-1"><i class="fa-solid fa-sliders mr-1"></i>၃။ အထွေထွေ</h4>
         <label class="lbl">အသင့်ရှိသော လူနာတင်ယာဉ် အရေအတွက်</label><input id="a-amb" type="number" min="0" class="inp">
         <label class="lbl">အရေးပေါ် အသိပေးချက်</label><textarea id="a-alert" rows="3" class="inp"></textarea>
         <label class="lbl">PIN အသစ် (မပြောင်းလိုပါက ကွက်လပ်ထားပါ)</label><input id="a-newpin" type="password" inputmode="numeric" class="inp">
 
         <!-- Delivery -->
-        <h4 class="text-xs font-bold text-red-700 mt-5 mb-1"><i class="fa-solid fa-satellite-dish mr-1"></i>၃။ SOS တိုက်ရိုက်ပို့ရန် ချိတ်ဆက်မှု</h4>
+        <h4 class="text-xs font-bold text-red-700 mt-5 mb-1"><i class="fa-solid fa-satellite-dish mr-1"></i>၄။ SOS တိုက်ရိုက်ပို့ရန် ချိတ်ဆက်မှု</h4>
         <label class="lbl">Telegram Bot Token</label><input id="a-tok" class="inp" placeholder="123456:ABC-DEF...">
         <label class="lbl">Webhook URL (ရွေးချယ်ခွင့် - Google Apps Script စသည်)</label><input id="a-hook" class="inp" placeholder="https://script.google.com/macros/s/.../exec">
         <button onclick="testSend()" class="w-full mt-2 bg-sky-600 text-white text-xs font-bold py-2.5 rounded-xl"><i class="fa-solid fa-vial mr-1"></i>စမ်းသပ်စာ ပို့ကြည့်မည်</button>
 
         <!-- Config sync -->
-        <h4 class="text-xs font-bold text-red-700 mt-5 mb-1"><i class="fa-solid fa-cloud-arrow-down mr-1"></i>၄။ ဆက်တင် မျှဝေခြင်း</h4>
+        <h4 class="text-xs font-bold text-red-700 mt-5 mb-1"><i class="fa-solid fa-cloud-arrow-down mr-1"></i>၅။ ဆက်တင် မျှဝေခြင်း</h4>
         <div class="p-3 bg-orange-50 border border-orange-200 rounded-2xl">
           <p class="text-[11px] font-bold text-orange-800">Firebase ဖြင့် အသုံးပြုသူအားလုံးသို့ ချက်ချင်းပို့ရန်</p>
           <label class="lbl">Database URL</label><input id="a-fburl" class="inp" placeholder="https://xxxx-default-rtdb.firebaseio.com">
@@ -288,21 +353,26 @@
 
 <script>
 /* ================= Config ================= */
+const LOGO_DEFAULT = 'data:image/jpeg;base64,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';
 const DEFAULTS = {
   pin: '1234',
   alert: 'ဧရာဝတီမြစ်ရေ မြင့်တက်လာနိုင်သဖြင့် မြစ်ကမ်းဘေးနေ ပြည်သူများ အရေးပေါ်ပြောင်းရွှေ့ရန် လိုအပ်ပါက အချိန်မရွေး ဆက်သွယ်နိုင်ပါသည်။',
   ambulances: 3,
   tgToken: '',
-  hook: '',
+  hook: 'https://script.google.com/macros/s/AKfycbxsaHJBQHKkxOuS0ZTget9K_kp2hcDeXFTi5fOX1YwIqL_i2YqK5cqz7dSlSI9nqrot/exec',
   remoteUrl: '',
   fbUrl: '',
   fbKey: '',
   mainId: 'main',
-  assocs: [{id:'main', name:'ရောင်စုံမေတ္တာ ကယ်ဆယ်ရေး', sub:'မကွေးမြို့နှင့် အနီးတစ်ဝိုက်', phone:'09400192192', chatId:'', logo:'', lat:20.1496, lng:94.9325}]
+  donNote: 'ကယ်ဆယ်ရေးလုပ်ငန်းများအတွက် အလှူငွေ လှူဒါန်းနိုင်ပါသည်',
+  contacts: [{id:'c1', name:'ရောင်စုံမေတ္တာ ကယ်ဆယ်ရေးအသင်း', desc:'ကယ်ဆယ်ရေး၊ လူနာတင်ယာဉ်', phone:'09456456420', logo:LOGO_DEFAULT}],
+  donations: [{id:'kpay1', label:'KPay', name:'U Aung Myo Naing', phone:'09265488244', qr:''}],
+  assocs: [{id:'main', name:'ရောင်စုံမေတ္တာ ကယ်ဆယ်ရေး', sub:'မကွေးမြို့နှင့် အနီးတစ်ဝိုက်', phone:'09265488244', chatId:'', logo:LOGO_DEFAULT, lat:20.1496, lng:94.9325}]
 };
 const clone = o => JSON.parse(JSON.stringify(o));
 let cfg = clone(DEFAULTS);
 try { const s = localStorage.getItem('rmk_cfg2'); if (s) cfg = Object.assign(cfg, JSON.parse(s)); } catch (e) {}
+if (!cfg.hook) cfg.hook = DEFAULTS.hook;
 function persist(){ try { localStorage.setItem('rmk_cfg2', JSON.stringify(cfg)); } catch (e) { toast('သိမ်းဆည်း၍မရပါ (Logo ကြီးလွန်းနိုင်သည်)', false); } }
 
 const MM = '၀၁၂၃၄၅၆၇၈၉';
@@ -377,6 +447,7 @@ function applyCfg(){
   $('target-wrap').classList.toggle('hidden', cfg.assocs.length < 2);
   renderContacts();
   if (typeof refreshMarkers === 'function') { renderMapList(); refreshMarkers(); }
+  renderDonations();
 }
 const COLORS = {red:'bg-red-50 text-red-600', sky:'bg-sky-50 text-sky-600', emerald:'bg-emerald-50 text-emerald-600', orange:'bg-orange-50 text-orange-600', blue:'bg-blue-50 text-blue-600', cyan:'bg-cyan-50 text-cyan-600'};
 $('svc-list').innerHTML = SERVICES.map(s => `
@@ -401,7 +472,7 @@ function renderGuides(){
 }
 function renderContacts(){
   const q = ($('c-search').value || '').trim().toLowerCase();
-  const items = cfg.assocs.map(a => ({name:a.name, desc:a.sub || 'ကယ်ဆယ်ရေးအသင်း', num:a.phone, logo:a.logo, icon:'fa-truck-medical', color:'bg-red-600'})).concat(NATIONAL)
+  const items = cfg.assocs.map(a => ({name:a.name, desc:a.sub || 'ကယ်ဆယ်ရေးအသင်း', num:a.phone, logo:a.logo, icon:'fa-truck-medical', color:'bg-red-600'})).concat((cfg.contacts || []).map(c => ({name:c.name, desc:c.desc || '', num:c.phone, logo:c.logo, icon:'fa-phone', color:'bg-red-600'}))).concat(NATIONAL)
     .filter(c => !q || (c.name + c.desc + c.num).toLowerCase().includes(q));
   $('c-list').innerHTML = items.length ? items.map(c => `
     <a href="${esc(telHref(c.num))}" class="bg-white rounded-2xl p-3.5 shadow-sm border border-slate-100 flex items-center gap-3 active:scale-[.98] transition">
@@ -484,13 +555,21 @@ async function dispatch(msg, a, extra){
       if (coords) { try { await tg('sendLocation', {chat_id:a.chatId, latitude:coords.lat, longitude:coords.lng}); } catch (e) {} }
     } catch (e) {}
   }
+  let unconfirmed = false;
   if (hasHook){
+    const body = JSON.stringify(Object.assign({association:a.name, message:msg, lat:coords ? coords.lat : null, lng:coords ? coords.lng : null, map:mapLink(), time:nowStr()}, extra || {}));
     try {
-      await fetch(cfg.hook, {method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain;charset=utf-8'},
-        body: JSON.stringify(Object.assign({association:a.name, message:msg, lat:coords ? coords.lat : null, lng:coords ? coords.lng : null, map:mapLink(), time:nowStr()}, extra || {}))});
-      ok = true;
-    } catch (e) {}
+      const ctl = new AbortController(); const tm = setTimeout(() => ctl.abort(), 20000);
+      const r = await fetch(cfg.hook, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body, signal: ctl.signal});
+      clearTimeout(tm);
+      const t = (await r.text()).trim();
+      if (r.ok && t === 'ok') ok = true;
+    } catch (e) {
+      // response unreadable (browser blocked reading it): the message may or may not have been delivered
+      unconfirmed = true;
+    }
   }
+  if (!ok && unconfirmed) return {ok:true, unconfirmed:true, reason:''};
   return {ok, reason: ok ? '' : 'error'};
 }
 
@@ -520,9 +599,9 @@ async function runSOS(quick){
   const close = `<button onclick="closeOv()" class="block w-full bg-white/15 border border-white/30 text-white font-semibold py-2.5 rounded-2xl">ပိတ်မည်</button>`;
   if (res.ok){
     $('ov-icon').innerHTML = '<i class="fa-solid fa-circle-check"></i>';
-    $('ov-title').textContent = 'ရုံးသို့ ပေးပို့ပြီးပါပြီ';
-    $('ov-text').textContent = (coords ? 'သင့်တည်နေရာနှင့်တကွ ' : 'GPS မရသဖြင့် လိပ်စာအချက်အလက်ဖြင့် ') + 'ပေးပို့ပြီး ဖြစ်သည်။ အဖွဲ့မှ မကြာမီ ဆက်သွယ်ပါမည်။ အရေးကြီးပါက ဖုန်းဆက်ပါ။';
-    $('ov-btns').innerHTML = call + close;
+    $('ov-title').textContent = res.unconfirmed ? 'ပေးပို့ပြီး (အတည်မပြုနိုင်ပါ)' : 'ရုံးသို့ ပေးပို့ပြီးပါပြီ';
+    $('ov-text').textContent = res.unconfirmed ? 'စာထွက်သွားပါပြီ၊ ဒါပေမဲ့ ရုံးဘက်ရောက်မရောက် အတည်မပြုနိုင်ပါ။ သေချာစေရန် စာတိုပို့ပါ သို့မဟုတ် ဖုန်းခေါ်ပါ။' : ((coords ? 'သင့်တည်နေရာနှင့်တကွ ' : 'GPS မရသဖြင့် လိပ်စာအချက်အလက်ဖြင့် ') + 'ပေးပို့ပြီး ဖြစ်သည်။ အဖွဲ့မှ မကြာမီ ဆက်သွယ်ပါမည်။ အရေးကြီးပါက ဖုန်းဆက်ပါ။');
+    $('ov-btns').innerHTML = (res.unconfirmed ? `<a href="${esc(smsLink(msg, a.phone))}" class="block w-full bg-amber-400 text-slate-900 font-bold py-3 rounded-2xl"><i class="fa-solid fa-comment-sms mr-2"></i>သေချာစေရန် စာတိုပါ ပို့မည်</a>` : '') + call + close;
   } else {
     const why = res.reason === 'noendpoint' ? 'ဤအသင်းအတွက် တိုက်ရိုက်ပို့ရန် ချိတ်ဆက်မှု မသတ်မှတ်ရသေးပါ။' : res.reason === 'offline' ? 'အင်တာနက် မရပါ။' : 'ပေးပို့၍ မရပါ။';
     $('ov-icon').innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
@@ -548,6 +627,8 @@ function unlockAdmin(){
   $('a-amb').value = cfg.ambulances; $('a-alert').value = cfg.alert; $('a-newpin').value = '';
   $('a-tok').value = cfg.tgToken; $('a-hook').value = cfg.hook; $('a-remote').value = cfg.remoteUrl; $('a-fburl').value = cfg.fbUrl; $('a-fbkey').value = cfg.fbKey; $('a-fbpass').value = ''; $('a-json').value = '';
   $('assoc-form').classList.add('hidden'); renderAssocAdmin();
+  $('a-donnote').value = cfg.donNote; $('don-form').classList.add('hidden'); renderDonAdmin();
+  $('con-form').classList.add('hidden'); renderConAdmin();
 }
 function renderAssocAdmin(){
   $('a-assoc-list').innerHTML = cfg.assocs.map(a => `
@@ -620,6 +701,7 @@ function delAssoc(id){
 function saveAdmin(){
   cfg.ambulances = Math.max(0, parseInt($('a-amb').value, 10) || 0);
   cfg.alert = $('a-alert').value.trim() || DEFAULTS.alert;
+  cfg.donNote = $('a-donnote').value.trim() || DEFAULTS.donNote;
   cfg.tgToken = $('a-tok').value.trim();
   const hook = $('a-hook').value.trim();
   if (hook && !/^https:\/\//.test(hook)){ toast('Webhook URL သည် https:// ဖြင့် စရမည်', false); return; }
@@ -643,9 +725,9 @@ async function testSend(){
   const a = cfg.assocs.find(x => x.id === targetId) || mainAssoc();
   toast('စမ်းသပ်စာ ပို့နေပါသည်...');
   const r = await dispatch('✅ စမ်းသပ်မှု - ' + a.name + '\nSOS ချိတ်ဆက်မှု အလုပ်လုပ်နေပါသည်။\n' + nowStr(), a, {test:true});
-  toast(r.ok ? 'ပို့ပြီးပါပြီ။ ရုံးတွင် လက်ခံရရှိမရှိ စစ်ပါ' : 'ပို့၍မရပါ။ Token / Chat ID / အင်တာနက် စစ်ပါ', r.ok);
+  toast(r.ok ? (r.unconfirmed ? 'ပို့ပြီးဖြစ်နိုင်သည် (အတည်မပြုနိုင်)။ Telegram ထဲ စစ်ပါ' : 'ပို့ပြီးပါပြီ။ ရုံးတွင် လက်ခံရရှိမရှိ စစ်ပါ') : 'ပို့၍မရပါ။ Webhook URL / Script / အင်တာနက် စစ်ပါ', r.ok);
 }
-const SYNC_KEYS = ['assocs','mainId','alert','ambulances'];
+const SYNC_KEYS = ['assocs','mainId','alert','ambulances','donations','donNote','contacts'];
 function mergeRemote(j){
   if (!j || typeof j !== 'object') return false;
   if (Array.isArray(j.assocs)){
@@ -653,6 +735,9 @@ function mergeRemote(j){
     if (!clean.length) return false; cfg.assocs = clean;
     cfg.mainId = clean.some(a => a.id === j.mainId) ? j.mainId : clean[0].id;
   }
+  if (Array.isArray(j.donations)) cfg.donations = j.donations.filter(d => d && d.id && d.label && d.phone).map(d => ({id:String(d.id), label:String(d.label), name:String(d.name || ''), phone:String(d.phone), qr:safeLogo(d.qr)}));
+  if (Array.isArray(j.contacts)) cfg.contacts = j.contacts.filter(c => c && c.id && c.name && c.phone).map(c => ({id:String(c.id), name:String(c.name), desc:String(c.desc || ''), phone:String(c.phone), logo:safeLogo(c.logo)}));
+  if (typeof j.donNote === 'string' && j.donNote) cfg.donNote = j.donNote;
   if (typeof j.alert === 'string' && j.alert) cfg.alert = j.alert;
   if (Number.isFinite(+j.ambulances)) cfg.ambulances = Math.max(0, +j.ambulances);
   if (typeof j.tgToken === 'string') cfg.tgToken = j.tgToken;
@@ -788,8 +873,124 @@ function confirmPick(){
   closePicker(); toast('တည်နေရာ ရွေးချယ်ပြီးပါပြီ');
 }
 
+/* ================= Donations ================= */
+function renderDonations(){
+  const list = (cfg.donations || []);
+  $('don-card').classList.toggle('hidden', !list.length);
+  $('don-note').textContent = cfg.donNote || '';
+  $('don-list').innerHTML = list.map((d, i) => `
+    <div class="border border-slate-200 rounded-2xl p-3.5">
+      <span class="text-[11px] font-bold bg-emerald-50 text-emerald-700 px-2.5 py-0.5 rounded-full">${esc(d.label)}</span>
+      ${d.name ? `<p class="text-sm font-bold mt-2">${esc(d.name)}</p>` : ''}
+      <div class="flex items-center justify-between gap-2 mt-1">
+        <p class="text-base font-extrabold tracking-wide text-slate-800 break-all">${esc(d.phone)}</p>
+        <button onclick="copyDon(${i})" class="shrink-0 bg-slate-800 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg"><i class="fa-regular fa-copy mr-1"></i>ကူးမည်</button>
+      </div>
+      ${safeLogo(d.qr) ? `<img src="${esc(safeLogo(d.qr))}" alt="QR" class="w-48 h-48 object-contain mx-auto mt-3 rounded-xl border border-slate-100">` : ''}
+    </div>`).join('');
+}
+function openDonate(){ $('don-ov').classList.remove('hidden'); }
+function closeDonate(){ $('don-ov').classList.add('hidden'); }
+async function copyDon(i){
+  const d = cfg.donations[i]; if (!d) return;
+  try { await navigator.clipboard.writeText(d.phone); toast('နံပါတ် ကူးယူပြီးပါပြီ'); }
+  catch (e) { toast('နံပါတ်ကို ဖိ၍ ကူးပါ: ' + d.phone, false); }
+}
+function renderDonAdmin(){
+  $('a-don-list').innerHTML = (cfg.donations || []).map(d => `
+    <div class="flex items-center gap-2.5 p-2.5 bg-slate-50 border border-slate-200 rounded-xl">
+      <div class="w-10 h-10 rounded-lg bg-white border border-slate-200 flex items-center justify-center overflow-hidden shrink-0">${safeLogo(d.qr) ? `<img src="${esc(safeLogo(d.qr))}" alt="" class="w-full h-full object-contain">` : '<i class="fa-solid fa-qrcode text-slate-400"></i>'}</div>
+      <div class="flex-1 min-w-0"><p class="text-xs font-bold truncate">${esc(d.label)} · ${esc(d.name)}</p><p class="text-[10px] text-slate-500 truncate">${esc(d.phone)}</p></div>
+      <button onclick="editDon('${esc(d.id)}')" class="text-slate-600 px-1.5"><i class="fa-solid fa-pen text-xs"></i></button>
+      <button onclick="delDon('${esc(d.id)}')" class="text-red-600 px-1.5"><i class="fa-solid fa-trash text-xs"></i></button>
+    </div>`).join('') || '<p class="text-[11px] text-slate-400">မထည့်ရသေးပါ</p>';
+}
+let donEditId = null, donQR = '';
+function setDfQR(){ $('df-qr').innerHTML = safeLogo(donQR) ? `<img src="${esc(donQR)}" alt="" class="w-full h-full object-contain">` : '<i class="fa-solid fa-qrcode"></i>'; }
+function editDon(id){
+  const d = id ? cfg.donations.find(x => x.id === id) : null;
+  donEditId = d ? d.id : null; donQR = d ? (d.qr || '') : '';
+  $('df-title').textContent = d ? 'ပြင်ဆင်ရန်' : 'အလှူငွေ နည်းလမ်းအသစ်';
+  $('df-label').value = d ? d.label : 'KPay'; $('df-name').value = d ? d.name : ''; $('df-phone').value = d ? d.phone : '';
+  setDfQR(); $('don-form').classList.remove('hidden'); $('don-form').scrollIntoView({behavior:'smooth', block:'center'});
+}
+function resizeQR(file){
+  return new Promise((res, rej) => {
+    const fr = new FileReader(); fr.onerror = () => rej();
+    fr.onload = () => {
+      const img = new Image(); img.onerror = () => rej();
+      img.onload = () => {
+        const M = 520, r = Math.min(1, M / Math.max(img.width, img.height));
+        const c = document.createElement('canvas'); c.width = Math.round(img.width * r); c.height = Math.round(img.height * r);
+        const ctx = c.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height); ctx.drawImage(img, 0, 0, c.width, c.height);
+        res(c.toDataURL('image/jpeg', 0.92));
+      };
+      img.src = fr.result;
+    };
+    fr.readAsDataURL(file);
+  });
+}
+async function pickQR(inp){
+  const f = inp.files && inp.files[0]; if (!f) return;
+  try { donQR = await resizeQR(f); setDfQR(); toast('QR ရွေးပြီးပါပြီ။ "သိမ်းမည်" ကိုနှိပ်ပါ'); } catch (e) { toast('ပုံဖတ်၍မရပါ', false); }
+  inp.value = '';
+}
+function clearQR(){ donQR = ''; setDfQR(); }
+function saveDon(){
+  const label = $('df-label').value.trim(), name = $('df-name').value.trim(), phone = $('df-phone').value.trim();
+  if (!label || !phone){ toast('နည်းလမ်းနှင့် နံပါတ် ထည့်ပါ', false); return; }
+  const data = {label, name, phone, qr:donQR};
+  if (donEditId) Object.assign(cfg.donations.find(x => x.id === donEditId), data);
+  else cfg.donations.push(Object.assign({id:'d' + Date.now().toString(36)}, data));
+  persist(); applyCfg(); renderDonAdmin(); $('don-form').classList.add('hidden'); toast('သိမ်းဆည်းပြီးပါပြီ');
+}
+function delDon(id){
+  if (!confirm('ဖျက်မလား?')) return;
+  cfg.donations = cfg.donations.filter(d => d.id !== id); persist(); applyCfg(); renderDonAdmin();
+}
+
+/* ================= Extra contacts ================= */
+function renderConAdmin(){
+  $('a-con-list').innerHTML = (cfg.contacts || []).map(c => `
+    <div class="flex items-center gap-2.5 p-2.5 bg-slate-50 border border-slate-200 rounded-xl">
+      <div class="w-10 h-10 rounded-lg bg-white border border-slate-200 flex items-center justify-center overflow-hidden shrink-0">${safeLogo(c.logo) ? `<img src="${esc(safeLogo(c.logo))}" alt="" class="w-full h-full object-contain">` : '<i class="fa-solid fa-phone text-red-500"></i>'}</div>
+      <div class="flex-1 min-w-0"><p class="text-xs font-bold truncate">${esc(c.name)}</p><p class="text-[10px] text-slate-500 truncate">${esc(c.phone)}</p></div>
+      <button onclick="editCon('${esc(c.id)}')" class="text-slate-600 px-1.5"><i class="fa-solid fa-pen text-xs"></i></button>
+      <button onclick="delCon('${esc(c.id)}')" class="text-red-600 px-1.5"><i class="fa-solid fa-trash text-xs"></i></button>
+    </div>`).join('') || '<p class="text-[11px] text-slate-400">မထည့်ရသေးပါ</p>';
+}
+let conEditId = null, conLogo = '';
+function setCfLogo(){ $('cf-logo').innerHTML = safeLogo(conLogo) ? `<img src="${esc(conLogo)}" alt="" class="w-full h-full object-contain">` : '<i class="fa-solid fa-image"></i>'; }
+function editCon(id){
+  const c = id ? cfg.contacts.find(x => x.id === id) : null;
+  conEditId = c ? c.id : null; conLogo = c ? (c.logo || '') : '';
+  $('cf-title').textContent = c ? 'ပြင်ဆင်ရန်' : 'ဖုန်းနံပါတ်အသစ်';
+  $('cf-name').value = c ? c.name : ''; $('cf-desc').value = c ? (c.desc || '') : ''; $('cf-phone').value = c ? c.phone : '';
+  setCfLogo(); $('con-form').classList.remove('hidden'); $('con-form').scrollIntoView({behavior:'smooth', block:'center'});
+}
+async function pickCLogo(inp){
+  const f = inp.files && inp.files[0]; if (!f) return;
+  try { conLogo = await resizeLogo(f); setCfLogo(); toast('Logo ရွေးပြီးပါပြီ။ "သိမ်းမည်" ကိုနှိပ်ပါ'); } catch (e) { toast('ပုံဖတ်၍မရပါ', false); }
+  inp.value = '';
+}
+function clearCLogo(){ conLogo = ''; setCfLogo(); }
+function saveCon(){
+  const name = $('cf-name').value.trim(), phone = $('cf-phone').value.trim();
+  if (!name){ toast('အမည် ထည့်ပါ', false); return; }
+  if (!/^[\d+\-\s]{3,20}$/.test(phone)){ toast('ဖုန်းနံပါတ် မှန်ကန်စွာ ထည့်ပါ', false); return; }
+  const data = {name, desc:$('cf-desc').value.trim(), phone, logo:conLogo};
+  if (conEditId) Object.assign(cfg.contacts.find(x => x.id === conEditId), data);
+  else cfg.contacts.push(Object.assign({id:'c' + Date.now().toString(36)}, data));
+  persist(); applyCfg(); renderConAdmin(); $('con-form').classList.add('hidden'); toast('သိမ်းဆည်းပြီးပါပြီ');
+}
+function delCon(id){
+  if (!confirm('ဖျက်မလား?')) return;
+  cfg.contacts = cfg.contacts.filter(c => c.id !== id); persist(); applyCfg(); renderConAdmin();
+}
+
 /* ================= Init ================= */
 applyCfg(); renderGuides(); loadRemote();
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) { window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {})); }
 </script>
 </body>
 </html>
