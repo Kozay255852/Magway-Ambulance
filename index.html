@@ -69,6 +69,13 @@
 
     <!-- HOME -->
     <section id="tab-home" class="tab-content p-4 space-y-4">
+      <div id="track-card" class="hidden bg-white border border-red-200 rounded-2xl p-3.5 shadow-sm">
+        <div class="flex items-center justify-between mb-1">
+          <h4 class="text-xs font-bold"><i class="fa-solid fa-route text-red-600 mr-1.5"></i>ကယ်ဆယ်ရေး ဆောင်ရွက်မှု အခြေအနေ</h4>
+          <button onclick="dismissTrack()" class="text-[10px] text-slate-400 px-1">ပိတ်မည်</button>
+        </div>
+        <div id="track-body"></div>
+      </div>
       <div id="gps-card" class="hidden bg-blue-50 border border-blue-200 rounded-2xl p-3 flex items-start gap-2.5">
         <div class="w-8 h-8 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center shrink-0"><i class="fa-solid fa-location-crosshairs"></i></div>
         <div class="flex-1"><p id="gps-card-text" class="text-xs text-blue-900"></p>
@@ -226,7 +233,8 @@
     <div id="ov-done" class="hidden w-full">
       <div id="ov-icon" class="w-20 h-20 mx-auto rounded-full bg-white/20 flex items-center justify-center text-4xl mb-4"></div>
       <h3 id="ov-title" class="text-lg font-bold"></h3>
-      <p id="ov-text" class="text-xs text-red-100 mt-1 mb-6"></p>
+      <p id="ov-text" class="text-xs text-red-100 mt-1 mb-3"></p>
+      <div id="ov-track" class="text-left bg-white/10 rounded-2xl px-3.5 py-2 mb-4"></div>
       <div id="ov-btns" class="space-y-2.5"></div>
     </div>
   </div>
@@ -346,6 +354,11 @@
           <button onclick="importCfg()" class="bg-slate-200 text-slate-700 text-xs font-bold py-2.5 rounded-xl">Import</button>
         </div>
         <textarea id="a-json" rows="4" class="inp mt-2 font-mono" placeholder="Export/Import JSON ဤနေရာတွင်"></textarea>
+
+        <h4 class="text-xs font-bold text-red-700 mt-5 mb-1"><i class="fa-solid fa-tower-broadcast mr-1"></i>၆။ SOS စာရင်း (ရုံးသုံး)</h4>
+        <p class="text-[10px] text-slate-500">အထက်က Firebase Email/Password ဖြင့် ဝင်ပါမည်။ ခလုတ်များကို နှိပ်၍ တောင်းခံသူထံ အခြေအနေ ပို့နိုင်သည်။</p>
+        <button onclick="loadSOS(true)" class="w-full mt-2 bg-slate-800 text-white text-xs font-bold py-2.5 rounded-xl"><i class="fa-solid fa-rotate mr-1"></i>SOS စာရင်း ကြည့်မည်</button>
+        <div id="a-sos-list" class="space-y-2.5 mt-2"></div>
 
         <div class="grid grid-cols-2 gap-2 mt-4">
           <button onclick="saveAdmin()" class="bg-red-600 text-white text-sm font-bold py-3 rounded-xl">အားလုံး သိမ်းမည်</button>
@@ -625,7 +638,11 @@ async function runSOS(quick){
   await getGPS(12000, false);
   const a = target(), msg = buildMsg(quick);
   const res = await dispatch(msg, a, {type: incident, phone: $('f-phone').value.trim(), address: $('f-loc').value.trim()});
+  const sid = await fbCreateSOS(a);
+  if (sid){ track = {id:sid, t:Date.now(), st:0}; saveTrack(); startPoll(); } 
   ovShow('ov-done');
+  $('ov-track').classList.toggle('hidden', !sid);
+  renderAllTrack();
   const call = `<a href="${esc(telHref(a.phone))}" class="block w-full bg-white text-red-700 font-bold py-3 rounded-2xl"><i class="fa-solid fa-phone mr-2"></i>${esc(a.name)} သို့ ဖုန်းခေါ်မည်</a>`;
   const close = `<button onclick="closeOv()" class="block w-full bg-white/15 border border-white/30 text-white font-semibold py-2.5 rounded-2xl">ပိတ်မည်</button>`;
   if (res.ok){
@@ -651,7 +668,7 @@ async function shareForm(){
 
 /* ================= Admin ================= */
 function openAdmin(){ $('admin').classList.remove('hidden'); $('admin-gate').classList.remove('hidden'); $('admin-body').classList.add('hidden'); $('a-pin').value = ''; }
-function closeAdmin(){ $('admin').classList.add('hidden'); }
+function closeAdmin(){ $('admin').classList.add('hidden'); clearInterval(sosTimer); sosTimer = null; }
 function unlockAdmin(){
   if ($('a-pin').value !== cfg.pin){ toast('PIN မှားနေပါသည်', false); return; }
   $('admin-gate').classList.add('hidden'); $('admin-body').classList.remove('hidden');
@@ -1024,6 +1041,123 @@ function delCon(id){
   cfg.contacts = cfg.contacts.filter(c => c.id !== id); persist(); applyCfg(); renderConAdmin();
 }
 
+/* ================= SOS status tracking ================= */
+const STEPS = [
+  {i:'fa-inbox', t:'ပေးပို့ပြီး - ရုံးမှ လက်ခံရန် စောင့်နေသည်'},
+  {i:'fa-truck-medical', t:'ရုံးမှ ထွက်ခွာလာပါပြီ'},
+  {i:'fa-road', t:'လမ်းမှာ ရောက်နေပါပြီ'},
+  {i:'fa-location-dot', t:'ဖြစ်စဉ်နေရာသို့ ရောက်ရှိပါပြီ'},
+  {i:'fa-circle-check', t:'ဆောင်ရွက်ပြီးစီးပါပြီ'}
+];
+const TK = 'rmk_track';
+let track = null, pollTimer = null, sosTimer = null;
+try { const x = localStorage.getItem(TK); if (x) track = JSON.parse(x); } catch (e) {}
+if (track && (!track.id || Date.now() - track.t > 24 * 3600e3)) track = null;
+function saveTrack(){ try { if (track) localStorage.setItem(TK, JSON.stringify(track)); else localStorage.removeItem(TK); } catch (e) {} }
+function newId(){ return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+function renderTrack(el, dark){
+  if (!el) return;
+  if (!track){ el.innerHTML = ''; return; }
+  const st = track.st || 0;
+  el.innerHTML = STEPS.map((s, i) => {
+    const done = i <= st, cur = i === st;
+    const dot = done ? (dark ? 'bg-white text-red-700' : 'bg-red-600 text-white') : (dark ? 'bg-white/20 text-white/60' : 'bg-slate-100 text-slate-400');
+    const tx = done ? '' : (dark ? 'text-white/60' : 'text-slate-400');
+    return `<div class="flex items-center gap-2.5 py-1.5"><div class="w-7 h-7 rounded-full flex items-center justify-center text-xs shrink-0 ${dot}"><i class="fa-solid ${s.i}"></i></div><span class="text-xs ${cur ? 'font-bold' : ''} ${tx}">${s.t}</span></div>`;
+  }).join('');
+}
+function renderAllTrack(){
+  $('track-card').classList.toggle('hidden', !track);
+  renderTrack($('track-body'), false);
+  if (!$('sos-ov').classList.contains('hidden')) renderTrack($('ov-track'), true);
+}
+function stopPoll(){ clearInterval(pollTimer); pollTimer = null; }
+function dismissTrack(){ track = null; saveTrack(); stopPoll(); renderAllTrack(); }
+function startPoll(){ stopPoll(); if (!track || !cfg.fbUrl) return; pollOnce(); pollTimer = setInterval(pollOnce, 6000); }
+async function pollOnce(){
+  if (!track || document.hidden) return;
+  try {
+    const r = await fetch(cfg.fbUrl + '/sos/' + encodeURIComponent(track.id) + '/status.json', {cache:'no-store'});
+    if (!r.ok) return;
+    const v = await r.json();
+    if (typeof v === 'number' && v >= 0 && v <= 4 && v !== track.st){
+      const up = v > (track.st || 0);
+      track.st = v; saveTrack(); renderAllTrack();
+      if (up){ toast(STEPS[v].t); if (navigator.vibrate) try { navigator.vibrate([200, 100, 200]); } catch (e) {} }
+    }
+    if (track && track.st === 4) stopPoll();
+  } catch (e) {}
+}
+async function fbCreateSOS(a){
+  if (!cfg.fbUrl) return null;
+  const id = newId();
+  const cut = (v, n) => String(v || '').slice(0, n);
+  const body = {t:Date.now(), type:cut(incident, 80), name:cut(a.name, 120), loc:cut($('f-loc').value.trim(), 300), phone:cut($('f-phone').value.trim(), 40), count:cut($('f-count').value.trim(), 20), note:cut($('f-note').value.trim(), 500), status:0, statusAt:Date.now()};
+  if (coords){ body.lat = coords.lat; body.lng = coords.lng; }
+  try {
+    const ctl = new AbortController(); const tm = setTimeout(() => ctl.abort(), 12000);
+    const r = await fetch(cfg.fbUrl + '/sos/' + id + '.json', {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body), signal:ctl.signal});
+    clearTimeout(tm);
+    return r.ok ? id : null;
+  } catch (e) { return null; }
+}
+
+/* ---- office side (Admin) ---- */
+let fbTok = null, fbTokAt = 0;
+async function fbLogin(){
+  if (fbTok && Date.now() - fbTokAt < 45 * 60e3) return fbTok;
+  const key = $('a-fbkey').value.trim() || cfg.fbKey, em = $('a-fbmail').value.trim(), pw = $('a-fbpass').value;
+  if (!key || !em || !pw) throw new Error('login:Email/Password/API Key ထည့်ပါ');
+  const r = await fetch('https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=' + encodeURIComponent(key), {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email:em, password:pw, returnSecureToken:true})});
+  const j = await r.json();
+  if (!r.ok || !j.idToken) throw new Error('login:' + ((j.error && j.error.message) || r.status));
+  fbTok = j.idToken; fbTokAt = Date.now(); return fbTok;
+}
+function sosErr(e){
+  const m = String(e.message || e);
+  if (m.indexOf('login:') === 0) toast('Login မရပါ (' + m.slice(6) + ')', false);
+  else if (m.indexOf('read:') === 0 || m.indexOf('write:') === 0) toast('Database အလုပ်မလုပ်ပါ (' + m + ')။ Rules ကို SOS အတွက် Publish လုပ်ထားလား စစ်ပါ', false);
+  else toast('ချိတ်ဆက်၍မရပါ (' + m + ')', false);
+}
+const SHORT = ['လက်ခံ', 'ထွက်ခွာ', 'လမ်းမှာ', 'ရောက်ပြီ', 'ပြီးစီး'];
+async function loadSOS(manual){
+  const url = ($('a-fburl').value.trim() || cfg.fbUrl).replace(/\/+$/, '');
+  if (!url){ toast('Firebase Database URL ထည့်ပါ', false); return; }
+  try {
+    const tok = await fbLogin();
+    const r = await fetch(url + '/sos.json?orderBy=%22t%22&limitToLast=20&auth=' + encodeURIComponent(tok), {cache:'no-store'});
+    if (!r.ok) throw new Error('read:' + r.status);
+    const d = (await r.json()) || {};
+    const rows = Object.keys(d).filter(k => /^[a-z0-9]+$/.test(k)).map(k => Object.assign({id:k}, d[k])).sort((a, b) => (b.t || 0) - (a.t || 0));
+    $('a-sos-list').innerHTML = rows.length ? rows.map(x => {
+      const when = x.t ? new Date(x.t).toLocaleString('en-GB', {timeZone:'Asia/Yangon'}) : '';
+      const st = +x.status || 0;
+      return `<div class="border ${st === 4 ? 'border-slate-200 bg-slate-50' : 'border-red-200 bg-red-50'} rounded-2xl p-3">
+        <div class="flex items-center justify-between gap-2"><span class="text-xs font-bold">${esc(x.type)}</span><span class="text-[10px] text-slate-500">${esc(when)}</span></div>
+        ${x.name ? `<p class="text-[10px] text-slate-500">${esc(x.name)}</p>` : ''}
+        ${x.loc ? `<p class="text-xs mt-1">${esc(x.loc)}</p>` : ''}
+        ${x.note ? `<p class="text-[11px] text-slate-600">${esc(x.note)}</p>` : ''}
+        <div class="flex flex-wrap gap-2 mt-1.5 text-[11px] font-semibold">
+          ${x.phone ? `<a href="${esc(telHref(x.phone))}" class="text-emerald-700"><i class="fa-solid fa-phone mr-1"></i>${esc(x.phone)}</a>` : ''}
+          ${(typeof x.lat === 'number' && typeof x.lng === 'number') ? `<a href="https://www.google.com/maps/dir/?api=1&destination=${x.lat},${x.lng}" target="_blank" rel="noopener" class="text-blue-600"><i class="fa-solid fa-location-dot mr-1"></i>မြေပုံ/လမ်းညွှန်</a>` : ''}
+        </div>
+        <div class="grid grid-cols-5 gap-1 mt-2">${SHORT.map((l, i) => `<button onclick="setSOS('${x.id}', ${i})" class="text-[10px] font-bold py-1.5 rounded-lg ${i === st ? 'bg-red-600 text-white' : 'bg-white border border-slate-200 text-slate-600'}">${l}</button>`).join('')}</div>
+      </div>`;
+    }).join('') : '<p class="text-[11px] text-slate-400">SOS မရှိသေးပါ</p>';
+    if (manual && !sosTimer) sosTimer = setInterval(() => loadSOS(false), 15000);
+  } catch (e) { if (manual) sosErr(e); }
+}
+async function setSOS(id, n){
+  const url = ($('a-fburl').value.trim() || cfg.fbUrl).replace(/\/+$/, '');
+  try {
+    const tok = await fbLogin();
+    const r = await fetch(url + '/sos/' + id + '.json?auth=' + encodeURIComponent(tok), {method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({status:n, statusAt:Date.now()})});
+    if (!r.ok) throw new Error('write:' + r.status);
+    toast('တောင်းခံသူထံ ပို့ပြီးပါပြီ: ' + STEPS[n].t);
+    loadSOS(false);
+  } catch (e) { sosErr(e); }
+}
+
 /* ================= GPS on entry ================= */
 async function checkGPS(){
   if (!navigator.geolocation) return;
@@ -1040,11 +1174,11 @@ async function checkGPS(){
   }
 }
 async function enableGPS(){ await getGPS(12000, true); checkGPS(); }
-document.addEventListener('visibilitychange', () => { if (!document.hidden) checkGPS(); });
+document.addEventListener('visibilitychange', () => { if (!document.hidden){ checkGPS(); pollOnce(); } });
 
 /* ================= Init ================= */
 if (cfgReset) persist();
-applyCfg(); renderGuides(); loadRemote(); checkGPS();
+applyCfg(); renderGuides(); loadRemote(); checkGPS(); renderAllTrack(); startPoll();
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) { window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {})); }
 </script>
 </body>
