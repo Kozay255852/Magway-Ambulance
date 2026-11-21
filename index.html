@@ -9,6 +9,7 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="mobile-web-app-capable" content="yes">
 <title>ရောင်စုံမေတ္တာ ကယ်ဆယ်ရေးအသင်း</title>
+<meta name="apple-mobile-web-app-title" content="ရောင်စုံမေတ္တာ ကယ်ဆယ်ရေးအသင်း">
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -54,7 +55,7 @@
         </div>
       </div>
       <div class="flex items-center gap-2 shrink-0">
-        <button onclick="openAdmin()" class="w-9 h-9 rounded-xl bg-white/15 border border-white/25 flex items-center justify-center" aria-label="Admin"><i class="fa-solid fa-gear text-sm"></i></button>
+        <button id="gear-btn" onclick="openAdmin()" class="w-9 h-9 rounded-xl bg-white/15 border border-white/25 flex items-center justify-center" aria-label="Admin"><i class="fa-solid fa-gear text-sm"></i></button>
         <a id="h-call" href="#" class="bg-white text-red-600 px-3 py-2 rounded-xl font-bold text-xs shadow flex items-center gap-1.5 active:scale-95 transition"><i class="fa-solid fa-phone-volume"></i><span>အမြန်ခေါ်</span></a>
       </div>
     </div>
@@ -183,6 +184,38 @@
       <div id="c-list" class="space-y-2.5"></div>
     </section>
   </main>
+
+  <!-- STAFF CONSOLE (staff app only) -->
+  <section id="staff" class="hidden absolute inset-0 z-[35] bg-slate-50 flex flex-col">
+    <div class="bg-gradient-to-r from-slate-900 to-slate-700 text-white px-4 pt-4 pb-3 flex items-center justify-between shrink-0">
+      <div><h2 class="font-bold text-sm"><i class="fa-solid fa-tower-broadcast text-red-400 mr-1.5"></i>ရုံးသုံး SOS ထိန်းချုပ်ခန်း</h2><p id="s-stat" class="text-[10px] text-slate-300 mt-0.5">ဝင်ရောက်ရန် လိုအပ်သည်</p></div>
+      <div class="flex gap-2">
+        <button onclick="staffRefresh()" class="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center" aria-label="Refresh"><i class="fa-solid fa-rotate text-sm"></i></button>
+        <button onclick="openAdmin()" class="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center" aria-label="Settings"><i class="fa-solid fa-gear text-sm"></i></button>
+        <button onclick="staffLogout()" class="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center" aria-label="Logout"><i class="fa-solid fa-right-from-bracket text-sm"></i></button>
+      </div>
+    </div>
+    <div class="flex-1 overflow-y-auto app-scroll p-4 pb-10">
+      <div id="s-login" class="bg-white border border-slate-200 rounded-2xl p-4 space-y-2">
+        <h3 class="text-xs font-bold">အသင်းသား ဝင်ရောက်ရန်</h3>
+        <label class="lbl">Web API Key</label><input id="s-key" class="inp" placeholder="AIza..." autocomplete="off">
+        <label class="lbl">Email</label><input id="s-mail" type="email" class="inp" autocomplete="username">
+        <label class="lbl">Password</label><input id="s-pass" type="password" class="inp" autocomplete="current-password">
+        <label class="flex items-center gap-2 text-[11px] text-slate-600"><input id="s-rem" type="checkbox" checked> ဤဖုန်းတွင် မှတ်ထားမည်</label>
+        <button onclick="staffLogin()" class="w-full bg-red-600 text-white text-sm font-bold py-3 rounded-xl">ဝင်မည်</button>
+        <p class="text-[10px] text-slate-400">ဝင်ထားစဉ် SOS အသစ်ဝင်လာလျှင် အသံနှင့် တုန်ခါမှုဖြင့် သတိပေးပါမည်။ Screen ကို ဖွင့်ထားပါ။</p>
+      </div>
+      <div id="s-main" class="hidden">
+        <div id="s-list" class="space-y-2.5"></div>
+      </div>
+    </div>
+  </section>
+  <div id="s-alarm" class="hidden absolute inset-0 z-[60] bg-red-700 text-white flex flex-col items-center justify-center text-center p-6 animate-pulse">
+    <i class="fa-solid fa-bell text-6xl mb-4"></i>
+    <h2 class="text-2xl font-extrabold">SOS အသစ် ဝင်လာပါပြီ!</h2>
+    <p id="s-alarm-txt" class="text-sm mt-2 mb-6"></p>
+    <button onclick="ringStop()" class="bg-white text-red-700 font-extrabold px-8 py-3 rounded-2xl text-base">သိပါပြီ - ကြည့်မည်</button>
+  </div>
 
   <!-- BOTTOM NAV -->
   <nav class="absolute bottom-0 inset-x-0 bg-white border-t border-slate-200 z-30 grid grid-cols-5 pb-1">
@@ -1106,7 +1139,7 @@ async function fbCreateSOS(a){
 let fbTok = null, fbTokAt = 0;
 async function fbLogin(){
   if (fbTok && Date.now() - fbTokAt < 45 * 60e3) return fbTok;
-  const key = $('a-fbkey').value.trim() || cfg.fbKey, em = $('a-fbmail').value.trim(), pw = $('a-fbpass').value;
+  const key = $('a-fbkey').value.trim() || cfg.fbKey || staffC.key, em = $('a-fbmail').value.trim() || staffC.email, pw = $('a-fbpass').value || staffC.pw;
   if (!key || !em || !pw) throw new Error('login:Email/Password/API Key ထည့်ပါ');
   const r = await fetch('https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=' + encodeURIComponent(key), {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email:em, password:pw, returnSecureToken:true})});
   const j = await r.json();
@@ -1129,7 +1162,7 @@ async function loadSOS(manual){
     if (!r.ok) throw new Error('read:' + r.status);
     const d = (await r.json()) || {};
     const rows = Object.keys(d).filter(k => /^[a-z0-9]+$/.test(k)).map(k => Object.assign({id:k}, d[k])).sort((a, b) => (b.t || 0) - (a.t || 0));
-    $('a-sos-list').innerHTML = rows.length ? rows.map(x => {
+    (APP_MODE === 'staff' ? $('s-list') : $('a-sos-list')).innerHTML = rows.length ? rows.map(x => {
       const when = x.t ? new Date(x.t).toLocaleString('en-GB', {timeZone:'Asia/Yangon'}) : '';
       const st = +x.status || 0;
       return `<div class="border ${st === 4 ? 'border-slate-200 bg-slate-50' : 'border-red-200 bg-red-50'} rounded-2xl p-3">
@@ -1144,7 +1177,8 @@ async function loadSOS(manual){
         <div class="grid grid-cols-5 gap-1 mt-2">${SHORT.map((l, i) => `<button onclick="setSOS('${x.id}', ${i})" class="text-[10px] font-bold py-1.5 rounded-lg ${i === st ? 'bg-red-600 text-white' : 'bg-white border border-slate-200 text-slate-600'}">${l}</button>`).join('')}</div>
       </div>`;
     }).join('') : '<p class="text-[11px] text-slate-400">SOS မရှိသေးပါ</p>';
-    if (manual && !sosTimer) sosTimer = setInterval(() => loadSOS(false), 15000);
+    if (APP_MODE === 'staff') staffAfterLoad(rows);
+    if (manual && !sosTimer && APP_MODE !== 'staff') sosTimer = setInterval(() => loadSOS(false), 15000);
   } catch (e) { if (manual) sosErr(e); }
 }
 async function setSOS(id, n){
@@ -1156,6 +1190,60 @@ async function setSOS(id, n){
     toast('တောင်းခံသူထံ ပို့ပြီးပါပြီ: ' + STEPS[n].t);
     loadSOS(false);
   } catch (e) { sosErr(e); }
+}
+
+/* ================= Staff app ================= */
+const APP_MODE = 'public';
+const SKEY = 'rmk_staff', DEF_KEY = 'AIzaSyCDM4gfbXCypnaTnWi4Ty-kH0aCwuPRAFM';
+let staffC = {}; try { staffC = JSON.parse(localStorage.getItem(SKEY) || '{}') || {}; } catch (e) {}
+let staffTimer = null, seen = null, ac = null, ringT = null;
+function unlockAudio(){ try { ac = ac || new (window.AudioContext || window.webkitAudioContext)(); if (ac.state === 'suspended') ac.resume(); } catch (e) {} }
+function beep(){
+  try { unlockAudio(); const o = ac.createOscillator(), g = ac.createGain(); o.type = 'square'; o.frequency.value = 880; g.gain.value = 0.25; o.connect(g); g.connect(ac.destination); o.start(); o.frequency.setValueAtTime(660, ac.currentTime + 0.25); o.stop(ac.currentTime + 0.5); } catch (e) {}
+  if (navigator.vibrate) try { navigator.vibrate([400, 150, 400]); } catch (e) {}
+}
+function ringStart(r){
+  $('s-alarm-txt').textContent = [r.type, r.loc].filter(Boolean).join(' - ');
+  $('s-alarm').classList.remove('hidden'); clearInterval(ringT); beep(); ringT = setInterval(beep, 1200);
+}
+function ringStop(){ clearInterval(ringT); ringT = null; $('s-alarm').classList.add('hidden'); }
+function staffAfterLoad(rows){
+  $('s-stat').textContent = 'နောက်ဆုံးစစ်ချိန် ' + new Date().toLocaleTimeString('en-GB', {timeZone:'Asia/Yangon'}) + ' • အလိုအလျောက် စောင့်ကြည့်နေသည်';
+  let fresh;
+  if (!seen){ seen = new Set(); fresh = rows.filter(r => (+r.status || 0) === 0 && Date.now() - (r.t || 0) < 30 * 60e3); }
+  else fresh = rows.filter(r => !seen.has(r.id) && (+r.status || 0) === 0);
+  rows.forEach(r => seen.add(r.id));
+  if (fresh.length) ringStart(fresh[0]);
+}
+async function staffEnter(manual){
+  $('s-login').classList.add('hidden'); $('s-main').classList.remove('hidden');
+  try { if (navigator.wakeLock) navigator.wakeLock.request('screen').catch(() => {}); } catch (e) {}
+  await loadSOS(manual);
+  clearInterval(staffTimer); staffTimer = setInterval(() => loadSOS(false), 8000);
+}
+async function staffLogin(){
+  unlockAudio();
+  const key = $('s-key').value.trim(), em = $('s-mail').value.trim(), pw = $('s-pass').value;
+  if (!key || !em || !pw){ toast('API Key / Email / Password ထည့်ပါ', false); return; }
+  staffC = {key, email:em, pw}; fbTok = null; cfg.fbKey = key; persist();
+  try {
+    await fbLogin();
+    try { localStorage.setItem(SKEY, JSON.stringify($('s-rem').checked ? staffC : {key, email:em})); } catch (e) {}
+    await staffEnter(true);
+  } catch (e) { sosErr(e); }
+}
+function staffLogout(){
+  clearInterval(staffTimer); ringStop(); fbTok = null; seen = null;
+  staffC = {key:staffC.key || DEF_KEY, email:staffC.email || ''}; try { localStorage.setItem(SKEY, JSON.stringify(staffC)); } catch (e) {}
+  $('s-pass').value = ''; $('s-main').classList.add('hidden'); $('s-login').classList.remove('hidden'); $('s-stat').textContent = 'ထွက်ထားသည်';
+}
+function staffRefresh(){ loadSOS(true); }
+function initMode(){
+  if (APP_MODE !== 'staff'){ const g = $('gear-btn'); if (g) g.classList.add('hidden'); return; }
+  $('staff').classList.remove('hidden');
+  $('s-key').value = staffC.key || cfg.fbKey || DEF_KEY; $('s-mail').value = staffC.email || '';
+  document.addEventListener('click', unlockAudio, {once:true});
+  if (staffC.key && staffC.email && staffC.pw) staffEnter(true);
 }
 
 /* ================= GPS on entry ================= */
@@ -1178,7 +1266,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden){ che
 
 /* ================= Init ================= */
 if (cfgReset) persist();
-applyCfg(); renderGuides(); loadRemote(); checkGPS(); renderAllTrack(); startPoll();
+applyCfg(); renderGuides(); loadRemote(); checkGPS(); renderAllTrack(); startPoll(); initMode();
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) { window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {})); }
 </script>
 </body>
