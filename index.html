@@ -129,6 +129,16 @@
             <div><label class="text-xs font-semibold" for="f-count">လူနာ/ပါဝင်သူ အရေအတွက်</label><input id="f-count" type="number" min="1" placeholder="၁" class="inp"></div>
           </div>
           <div><label class="text-xs font-semibold" for="f-note">အခြေအနေ အကျဉ်းချုပ်</label><textarea id="f-note" rows="2" placeholder="ဥပမာ - ဆေးရုံသို့ လွှဲပြောင်းရန်၊ အနီးဆုံး အမှတ်အသား..." class="inp"></textarea></div>
+          <div>
+            <label class="text-xs font-semibold"><i class="fa-solid fa-camera text-red-600 mr-1"></i>ဖြစ်ရပ်နေရာ ဓာတ်ပုံ (အများဆုံး ၃ ပုံ - မဖြစ်မနေမဟုတ်ပါ)</label>
+            <div class="grid grid-cols-2 gap-2 mt-1">
+              <button type="button" onclick="$('ph-cam').click()" class="bg-slate-800 text-white text-[11px] font-bold py-2.5 rounded-xl"><i class="fa-solid fa-camera mr-1"></i>ကင်မရာဖြင့် ရိုက်မည်</button>
+              <button type="button" onclick="$('ph-gal').click()" class="bg-slate-100 text-slate-700 text-[11px] font-bold py-2.5 rounded-xl"><i class="fa-solid fa-image mr-1"></i>ဓာတ်ပုံ ရွေးမည်</button>
+            </div>
+            <input id="ph-cam" type="file" accept="image/*" capture="environment" class="hidden" onchange="addPhotos(this)">
+            <input id="ph-gal" type="file" accept="image/*" multiple class="hidden" onchange="addPhotos(this)">
+            <div id="ph-prev" class="flex gap-2 flex-wrap mt-2"></div>
+          </div>
           <button type="button" onclick="sendForm()" class="w-full bg-red-600 active:scale-[.98] text-white font-bold text-sm py-3 rounded-2xl shadow-md flex items-center justify-center gap-2"><i class="fa-solid fa-paper-plane"></i>အကူအညီတောင်းခံမှု ပေးပို့မည်</button>
           <button type="button" onclick="shareForm()" class="w-full bg-slate-100 text-slate-700 font-semibold text-xs py-2.5 rounded-2xl flex items-center justify-center gap-2"><i class="fa-solid fa-share-nodes"></i>Viber / Messenger ဖြင့် မျှဝေရန်</button>
         </div>
@@ -151,6 +161,11 @@
     <section id="tab-services" class="tab-content hidden p-4 space-y-3">
       <div class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100"><h2 class="text-base font-bold">ကျွန်ုပ်တို့၏ ဝန်ဆောင်မှုများ</h2><p class="text-xs text-slate-500">ရောင်စုံမေတ္တာ ကယ်ဆယ်ရေးအသင်း</p></div>
       <div id="svc-list" class="space-y-3"></div>
+      <div class="bg-white rounded-3xl p-4 shadow-sm border border-slate-100">
+        <h2 class="text-base font-bold"><i class="fa-solid fa-toolbox text-red-600 mr-1.5"></i>ရုံးတွင် ရှိသော ကိရိယာ / ပစ္စည်းများ</h2>
+        <p class="text-xs text-slate-500">ကယ်ဆယ်ရေးလုပ်ငန်းများအတွက် အသုံးပြုနေသော ကိရိယာများ</p>
+        <div id="gear-list" class="grid grid-cols-2 gap-2.5 mt-3"></div>
+      </div>
       <a id="svc-call" href="#" class="block bg-red-600 text-white text-center font-bold text-sm py-3 rounded-2xl shadow-md active:scale-[.98]"><i class="fa-solid fa-phone mr-2"></i>ဝန်ဆောင်မှုတောင်းရန် ဖုန်းခေါ်မည်</a>
     </section>
 
@@ -225,6 +240,12 @@
     <button class="nav-btn flex flex-col items-center py-2 text-slate-400" data-tab="aid"><i class="fa-solid fa-kit-medical text-lg"></i><span class="text-[10px] font-semibold mt-0.5">ရှေးဦး</span></button>
     <button class="nav-btn flex flex-col items-center py-2 text-slate-400" data-tab="contacts"><i class="fa-solid fa-address-book text-lg"></i><span class="text-[10px] font-semibold mt-0.5">ဖုန်းစာရင်း</span></button>
   </nav>
+
+  <div id="gear-lb" class="hidden absolute inset-0 z-[70] bg-black/90 flex flex-col items-center justify-center p-4" onclick="this.classList.add('hidden')">
+    <img id="gear-lb-img" src="" alt="" class="max-w-full max-h-[75%] rounded-2xl object-contain">
+    <p id="gear-lb-name" class="text-white font-bold text-sm mt-3"></p><p id="gear-lb-desc" class="text-slate-300 text-xs mt-1 text-center"></p>
+    <span class="text-slate-400 text-[10px] mt-3">ပိတ်ရန် ထပ်နှိပ်ပါ</span>
+  </div>
 
   <!-- DONATE MODAL -->
   <div id="don-ov" class="hidden absolute inset-0 z-[52] bg-black/60 flex items-end justify-center">
@@ -388,6 +409,27 @@
         </div>
         <textarea id="a-json" rows="4" class="inp mt-2 font-mono" placeholder="Export/Import JSON ဤနေရာတွင်"></textarea>
 
+        <h4 class="text-xs font-bold text-red-700 mt-5 mb-1"><i class="fa-solid fa-toolbox mr-1"></i>၇။ ရုံးရှိ ကိရိယာ / ပစ္စည်းများ</h4>
+        <p class="text-[10px] text-slate-500">ပုံနှင့်တကွ ထည့်ထားလျှင် ပြည်သူသုံး app ၏ "ဝန်ဆောင်မှု" စာမျက်နှာတွင် ပေါ်မည်။ ပြီးလျှင် "အားလုံးသို့ ပို့မည် (Publish)" ကိုနှိပ်ပါ။</p>
+        <div id="a-gear-list" class="space-y-2 mt-2"></div>
+        <button onclick="editGear(null)" class="w-full mt-2 border-2 border-dashed border-slate-300 text-slate-600 text-xs font-bold py-2.5 rounded-xl"><i class="fa-solid fa-plus mr-1"></i>ပစ္စည်းအသစ် ထည့်မည်</button>
+        <div id="gear-form" class="hidden mt-3 p-3 bg-slate-50 border border-slate-200 rounded-2xl">
+          <h5 id="gf-title" class="text-xs font-bold"></h5>
+          <label class="lbl">ပစ္စည်းအမည်</label><input id="gf-name" class="inp">
+          <label class="lbl">ဖော်ပြချက် (တိုတို)</label><textarea id="gf-desc" rows="2" class="inp"></textarea>
+          <div class="flex items-center gap-3 mt-3">
+            <div id="gf-img" class="w-24 h-20 rounded-xl bg-white border border-slate-200 flex items-center justify-center overflow-hidden text-slate-300 text-2xl"><i class="fa-solid fa-image"></i></div>
+            <div class="flex-1">
+              <label class="inline-block bg-slate-800 text-white text-[11px] font-bold px-3 py-2 rounded-xl cursor-pointer"><i class="fa-solid fa-upload mr-1"></i>ပုံ ရွေးရန်<input type="file" accept="image/*" class="hidden" onchange="pickGear(this)"></label>
+              <button type="button" onclick="gearImg=''; setGfImg()" class="text-[11px] text-red-600 font-semibold ml-2">ပုံဖျက်မည်</button>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-2 mt-3">
+            <button onclick="saveGear()" class="bg-red-600 text-white text-xs font-bold py-2.5 rounded-xl">သိမ်းမည်</button>
+            <button onclick="$('gear-form').classList.add('hidden')" class="bg-slate-200 text-slate-700 text-xs font-bold py-2.5 rounded-xl">မလုပ်တော့ပါ</button>
+          </div>
+        </div>
+
         <h4 class="text-xs font-bold text-red-700 mt-5 mb-1"><i class="fa-solid fa-tower-broadcast mr-1"></i>၆။ SOS စာရင်း (ရုံးသုံး)</h4>
         <p class="text-[10px] text-slate-500">အထက်က Firebase Email/Password ဖြင့် ဝင်ပါမည်။ ခလုတ်များကို နှိပ်၍ တောင်းခံသူထံ အခြေအနေ ပို့နိုင်သည်။</p>
         <button onclick="loadSOS(true)" class="w-full mt-2 bg-slate-800 text-white text-xs font-bold py-2.5 rounded-xl"><i class="fa-solid fa-rotate mr-1"></i>SOS စာရင်း ကြည့်မည်</button>
@@ -418,6 +460,12 @@ const DEFAULTS = {
   mainId: 'main',
   donNote: 'ကယ်ဆယ်ရေးလုပ်ငန်းများအတွက် အလှူငွေ လှူဒါန်းနိုင်ပါသည်',
   contacts: [{id:'c1', name:'ရောင်စုံမေတ္တာ ကယ်ဆယ်ရေးအသင်း', desc:'ကယ်ဆယ်ရေး၊ လူနာတင်ယာဉ်', phone:'09456456420', logo:LOGO_DEFAULT}],
+  gear: [
+    {id:'g1', name:'Hydraulic Cutter Tool', desc:'ယာဉ်တိုက်မှုတွင် ပိတ်မိနေသူများကို ကယ်ထုတ်ရန် ဟိုက်ဒရောလစ် ဖြတ်တောက်ကိရိယာ', icon:'fa-screwdriver-wrench', img:''},
+    {id:'g2', name:'Diver Accessories', desc:'ရေငုပ်ရှာဖွေရေးအတွက် ရေငုပ်ဝတ်စုံနှင့် အသုံးအဆောင်များ', icon:'fa-person-swimming', img:''},
+    {id:'g3', name:'Original Ambulance', desc:'ဆေးရုံပို့၊ အရေးပေါ်လူနာတင် လူနာတင်ယာဉ်', icon:'fa-truck-medical', img:''},
+    {id:'g4', name:'Rescue Boat', desc:'ရေကြီးရေလျှံနှင့် ရေနစ်မှု ကယ်ဆယ်ရေးလှေ', icon:'fa-sailboat', img:''}
+  ],
   donations: [{id:'kpay1', label:'KPay', name:'U Aung Myo Naing', phone:'09265488244', qr:''}],
   assocs: [{id:'main', name:'ရောင်စုံမေတ္တာ ကယ်ဆယ်ရေး', sub:'မကွေးမြို့နှင့် အနီးတစ်ဝိုက်', phone:'09265488244', chatId:'', logo:LOGO_DEFAULT, lat:20.1496, lng:94.9325}]
 };
@@ -435,6 +483,7 @@ try {
     }
   }
 } catch (e) {}
+if (!Array.isArray(cfg.gear)) cfg.gear = clone(DEFAULTS.gear);
 if (!cfg.hook) cfg.hook = DEFAULTS.hook;
 if (!cfg.fbUrl) cfg.fbUrl = DEFAULTS.fbUrl;
 function persist(){ try { localStorage.setItem('rmk_cfg2', JSON.stringify(cfg)); } catch (e) { toast('သိမ်းဆည်း၍မရပါ (Logo ကြီးလွန်းနိုင်သည်)', false); } }
@@ -512,6 +561,7 @@ function applyCfg(){
   renderContacts();
   if (typeof refreshMarkers === 'function') { renderMapList(); refreshMarkers(); }
   renderDonations();
+  renderGear();
 }
 const COLORS = {red:'bg-red-50 text-red-600', sky:'bg-sky-50 text-sky-600', emerald:'bg-emerald-50 text-emerald-600', orange:'bg-orange-50 text-orange-600', blue:'bg-blue-50 text-blue-600', cyan:'bg-cyan-50 text-cyan-600'};
 $('svc-list').innerHTML = SERVICES.map(s => `
@@ -620,6 +670,63 @@ async function tg(method, body){
     return j;
   } finally { clearTimeout(t); }
 }
+/* ---- photos ---- */
+let photos = [];
+function renderPhotos(){
+  $('ph-prev').innerHTML = photos.map((u, i) => `<div class="relative w-16 h-16"><img src="${u}" class="w-16 h-16 object-cover rounded-xl border border-slate-200"><button type="button" onclick="rmPhoto(${i})" class="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-600 text-white text-[10px] leading-none" aria-label="ဖယ်ရှားမည်">✕</button></div>`).join('');
+}
+function rmPhoto(i){ photos.splice(i, 1); renderPhotos(); }
+function clearPhotos(){ photos = []; renderPhotos(); }
+function shrink(file){
+  return new Promise((res, rej) => {
+    const url = URL.createObjectURL(file), im = new Image();
+    im.onload = () => {
+      const M = 1280, k = Math.min(1, M / Math.max(im.width, im.height));
+      const c = document.createElement('canvas'); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+      c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url); res(c.toDataURL('image/jpeg', 0.72));
+    };
+    im.onerror = () => { URL.revokeObjectURL(url); rej(new Error('img')); };
+    im.src = url;
+  });
+}
+async function addPhotos(inp){
+  const files = Array.from(inp.files || []); inp.value = '';
+  for (const f of files){
+    if (photos.length >= 3){ toast('ဓာတ်ပုံ ၃ ပုံထက် မပို့နိုင်ပါ', false); break; }
+    try { photos.push(await shrink(f)); } catch (e) { toast('ဓာတ်ပုံ ဖတ်၍မရပါ', false); }
+  }
+  renderPhotos();
+}
+function dataToBlob(d){
+  const b = atob(d.split(',')[1]), u = new Uint8Array(b.length);
+  for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i);
+  return new Blob([u], {type:'image/jpeg'});
+}
+async function sendPhotos(a, hasTg, hasHook){
+  let sent = 0; const phone = $('f-phone').value.trim(), total = photos.length;
+  for (let i = 0; i < total; i++){
+    const cap = '📷 ' + incident + ' (' + (i + 1) + '/' + total + ')' + (phone ? ' • ' + phone : '');
+    let done = false;
+    if (hasTg){
+      try {
+        const fd = new FormData(); fd.append('chat_id', a.chatId); fd.append('caption', cap); fd.append('photo', dataToBlob(photos[i]), 'sos.jpg');
+        const r = await fetch('https://api.telegram.org/bot' + encodeURIComponent(cfg.tgToken) + '/sendPhoto', {method:'POST', body:fd});
+        const j = await r.json(); if (j.ok) done = true;
+      } catch (e) {}
+    }
+    if (!done && hasHook){
+      try {
+        const ctl = new AbortController(); const tm = setTimeout(() => ctl.abort(), 40000);
+        const r = await fetch(cfg.hook, {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify({association:a.name, caption:cap, mime:'image/jpeg', photo:photos[i].split(',')[1]}), signal:ctl.signal});
+        clearTimeout(tm);
+        if ((await r.text()).trim() === 'ok') done = true;
+      } catch (e) { done = true; }
+    }
+    if (done) sent++;
+  }
+  return {sent, total};
+}
 async function dispatch(msg, a, extra){
   const hasTg = cfg.tgToken && a.chatId, hasHook = !!cfg.hook;
   if (!hasTg && !hasHook) return {ok:false, reason:'noendpoint'};
@@ -646,8 +753,10 @@ async function dispatch(msg, a, extra){
       unconfirmed = true;
     }
   }
-  if (!ok && unconfirmed) return {ok:true, unconfirmed:true, reason:''};
-  return {ok, reason: ok ? '' : 'error'};
+  let ph = null;
+  if ((ok || unconfirmed) && photos.length) ph = await sendPhotos(a, hasTg, hasHook);
+  if (!ok && unconfirmed) return {ok:true, unconfirmed:true, reason:'', ph};
+  return {ok, reason: ok ? '' : 'error', ph};
 }
 
 /* ================= SOS flow (overlay) ================= */
@@ -677,11 +786,14 @@ async function runSOS(quick){
   $('ov-track').classList.toggle('hidden', !sid);
   renderAllTrack();
   const call = `<a href="${esc(telHref(a.phone))}" class="block w-full bg-white text-red-700 font-bold py-3 rounded-2xl"><i class="fa-solid fa-phone mr-2"></i>${esc(a.name)} သို့ ဖုန်းခေါ်မည်</a>`;
+  const phNote = res.ph ? ' 📷 ဓာတ်ပုံ ' + res.ph.sent + '/' + res.ph.total + ' ပုံ ပို့ပြီး' + (res.ph.sent < res.ph.total ? ' (ကျန်တာ မပို့နိုင်ပါ)' : '') : '';
+  if (res.ok && res.ph) clearPhotos();
   const close = `<button onclick="closeOv()" class="block w-full bg-white/15 border border-white/30 text-white font-semibold py-2.5 rounded-2xl">ပိတ်မည်</button>`;
   if (res.ok){
     $('ov-icon').innerHTML = '<i class="fa-solid fa-circle-check"></i>';
     $('ov-title').textContent = res.unconfirmed ? 'ပေးပို့ပြီး (အတည်မပြုနိုင်ပါ)' : 'ရုံးသို့ ပေးပို့ပြီးပါပြီ';
     $('ov-text').textContent = res.unconfirmed ? 'စာထွက်သွားပါပြီ၊ ဒါပေမဲ့ ရုံးဘက်ရောက်မရောက် အတည်မပြုနိုင်ပါ။ သေချာစေရန် စာတိုပို့ပါ သို့မဟုတ် ဖုန်းခေါ်ပါ။' : ((coords ? 'သင့်တည်နေရာနှင့်တကွ ' : 'GPS မရသဖြင့် လိပ်စာအချက်အလက်ဖြင့် ') + 'ပေးပို့ပြီး ဖြစ်သည်။ အဖွဲ့မှ မကြာမီ ဆက်သွယ်ပါမည်။ အရေးကြီးပါက ဖုန်းဆက်ပါ။' + (coords ? '' : ' (' + gpsErr + ')'));
+    $('ov-text').textContent += phNote;
     $('ov-btns').innerHTML = (res.unconfirmed ? `<a href="${esc(smsLink(msg, a.phone))}" class="block w-full bg-amber-400 text-slate-900 font-bold py-3 rounded-2xl"><i class="fa-solid fa-comment-sms mr-2"></i>သေချာစေရန် စာတိုပါ ပို့မည်</a>` : '') + call + close;
   } else {
     const why = res.reason === 'noendpoint' ? 'ဤအသင်းအတွက် တိုက်ရိုက်ပို့ရန် ချိတ်ဆက်မှု မသတ်မှတ်ရသေးပါ။' : res.reason === 'offline' ? 'အင်တာနက် မရပါ။' : 'ပေးပို့၍ မရပါ။';
@@ -708,7 +820,7 @@ function unlockAdmin(){
   $('a-amb').value = cfg.ambulances; $('a-alert').value = cfg.alert; $('a-newpin').value = '';
   $('a-tok').value = cfg.tgToken; $('a-hook').value = cfg.hook; $('a-remote').value = cfg.remoteUrl; $('a-fburl').value = cfg.fbUrl; $('a-fbkey').value = cfg.fbKey; $('a-fbpass').value = ''; $('a-json').value = '';
   $('assoc-form').classList.add('hidden'); renderAssocAdmin();
-  $('a-donnote').value = cfg.donNote; $('don-form').classList.add('hidden'); renderDonAdmin();
+  $('a-donnote').value = cfg.donNote; $('don-form').classList.add('hidden'); renderDonAdmin(); $('gear-form').classList.add('hidden'); renderGearAdmin();
   $('con-form').classList.add('hidden'); renderConAdmin();
 }
 function renderAssocAdmin(){
@@ -808,7 +920,7 @@ async function testSend(){
   const r = await dispatch('✅ စမ်းသပ်မှု - ' + a.name + '\nSOS ချိတ်ဆက်မှု အလုပ်လုပ်နေပါသည်။\n' + nowStr(), a, {test:true});
   toast(r.ok ? (r.unconfirmed ? 'ပို့ပြီးဖြစ်နိုင်သည် (အတည်မပြုနိုင်)။ Telegram ထဲ စစ်ပါ' : 'ပို့ပြီးပါပြီ။ ရုံးတွင် လက်ခံရရှိမရှိ စစ်ပါ') : 'ပို့၍မရပါ။ Webhook URL / Script / အင်တာနက် စစ်ပါ', r.ok);
 }
-const SYNC_KEYS = ['assocs','mainId','alert','ambulances','donations','donNote','contacts'];
+const SYNC_KEYS = ['assocs','mainId','alert','ambulances','donations','donNote','contacts','gear'];
 function mergeRemote(j){
   if (!j || typeof j !== 'object') return false;
   if (Array.isArray(j.assocs)){
@@ -817,6 +929,7 @@ function mergeRemote(j){
     cfg.mainId = clean.some(a => a.id === j.mainId) ? j.mainId : clean[0].id;
   }
   if (Array.isArray(j.donations)) cfg.donations = j.donations.filter(d => d && d.id && d.label && d.phone).map(d => ({id:String(d.id), label:String(d.label), name:String(d.name || ''), phone:String(d.phone), qr:safeLogo(d.qr)}));
+  if (Array.isArray(j.gear)) cfg.gear = j.gear.filter(g => g && g.id && g.name).map(g => ({id:String(g.id), name:String(g.name), desc:String(g.desc || ''), icon:/^fa-[a-z-]+$/.test(g.icon || '') ? g.icon : 'fa-toolbox', img:safeLogo(g.img)}));
   if (Array.isArray(j.contacts)) cfg.contacts = j.contacts.filter(c => c && c.id && c.name && c.phone).map(c => ({id:String(c.id), name:String(c.name), desc:String(c.desc || ''), phone:String(c.phone), logo:safeLogo(c.logo)}));
   if (typeof j.donNote === 'string' && j.donNote) cfg.donNote = j.donNote;
   if (typeof j.alert === 'string' && j.alert) cfg.alert = j.alert;
@@ -1033,6 +1146,79 @@ function saveDon(){
 function delDon(id){
   if (!confirm('ဖျက်မလား?')) return;
   cfg.donations = cfg.donations.filter(d => d.id !== id); persist(); applyCfg(); renderDonAdmin();
+}
+
+/* ================= Equipment gallery ================= */
+function gearThumb(g, cls){
+  const im = safeLogo(g.img);
+  return im ? `<img src="${esc(im)}" alt="${esc(g.name)}" class="${cls} object-cover">` : `<div class="${cls} bg-slate-100 flex items-center justify-center text-slate-400 text-3xl"><i class="fa-solid ${esc(g.icon || 'fa-toolbox')}"></i></div>`;
+}
+function renderGear(){
+  const list = cfg.gear || [];
+  const box = $('gear-list'); if (!box) return;
+  box.parentElement.classList.toggle('hidden', !list.length);
+  box.innerHTML = list.map((g, i) => `
+    <button type="button" onclick="openGear(${i})" class="text-left bg-white border border-slate-200 rounded-2xl overflow-hidden active:scale-[.98] transition">
+      ${gearThumb(g, 'w-full h-24')}
+      <div class="p-2"><p class="text-[11px] font-bold leading-tight">${esc(g.name)}</p><p class="text-[10px] text-slate-500 mt-0.5 line-clamp-2">${esc(g.desc)}</p></div>
+    </button>`).join('');
+}
+function openGear(i){
+  const g = (cfg.gear || [])[i]; if (!g) return;
+  const im = safeLogo(g.img);
+  if (!im){ toast(g.name + ' - ' + (g.desc || ''), true); return; }
+  $('gear-lb-img').src = im; $('gear-lb-name').textContent = g.name; $('gear-lb-desc').textContent = g.desc || '';
+  $('gear-lb').classList.remove('hidden');
+}
+function renderGearAdmin(){
+  $('a-gear-list').innerHTML = (cfg.gear || []).map((g, i) => `
+    <div class="flex items-center gap-2 p-2 bg-slate-50 border border-slate-200 rounded-xl">
+      <div class="w-12 h-10 rounded-lg overflow-hidden shrink-0">${gearThumb(g, 'w-12 h-10 text-base')}</div>
+      <div class="flex-1 min-w-0"><p class="text-xs font-bold truncate">${esc(g.name)}</p><p class="text-[10px] text-slate-500 truncate">${esc(g.desc)}</p></div>
+      <button onclick="moveGear(${i},-1)" class="text-slate-500 px-1"><i class="fa-solid fa-arrow-up text-xs"></i></button>
+      <button onclick="moveGear(${i},1)" class="text-slate-500 px-1"><i class="fa-solid fa-arrow-down text-xs"></i></button>
+      <button onclick="editGear('${esc(g.id)}')" class="text-slate-600 px-1"><i class="fa-solid fa-pen text-xs"></i></button>
+      <button onclick="delGear('${esc(g.id)}')" class="text-red-600 px-1"><i class="fa-solid fa-trash text-xs"></i></button>
+    </div>`).join('') || '<p class="text-[11px] text-slate-400">မထည့်ရသေးပါ</p>';
+}
+let gearEditId = null, gearImg = '';
+function setGfImg(){ $('gf-img').innerHTML = safeLogo(gearImg) ? `<img src="${esc(gearImg)}" alt="" class="w-full h-full object-cover">` : '<i class="fa-solid fa-image"></i>'; }
+function editGear(id){
+  const g = id ? cfg.gear.find(x => x.id === id) : null;
+  gearEditId = g ? g.id : null; gearImg = g ? (g.img || '') : '';
+  $('gf-title').textContent = g ? 'ပြင်ဆင်ရန်' : 'ပစ္စည်းအသစ်';
+  $('gf-name').value = g ? g.name : ''; $('gf-desc').value = g ? g.desc : '';
+  setGfImg(); $('gear-form').classList.remove('hidden'); $('gear-form').scrollIntoView({behavior:'smooth', block:'center'});
+}
+function resizeGear(file){
+  return new Promise((res, rej) => {
+    const url = URL.createObjectURL(file), im = new Image();
+    im.onload = () => {
+      const M = 720, k = Math.min(1, M / Math.max(im.width, im.height));
+      const c = document.createElement('canvas'); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+      const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); x.drawImage(im, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url); res(c.toDataURL('image/jpeg', 0.78));
+    };
+    im.onerror = () => { URL.revokeObjectURL(url); rej(); };
+    im.src = url;
+  });
+}
+async function pickGear(inp){
+  const f = inp.files && inp.files[0]; if (!f) return;
+  try { gearImg = await resizeGear(f); setGfImg(); toast('ပုံရွေးပြီးပါပြီ။ "သိမ်းမည်" ကိုနှိပ်ပါ'); } catch (e) { toast('ပုံဖတ်၍မရပါ', false); }
+  inp.value = '';
+}
+function saveGear(){
+  const name = $('gf-name').value.trim(), desc = $('gf-desc').value.trim();
+  if (!name){ toast('ပစ္စည်းအမည် ထည့်ပါ', false); return; }
+  if (gearEditId){ Object.assign(cfg.gear.find(x => x.id === gearEditId), {name, desc, img:gearImg}); }
+  else cfg.gear.push({id:'g' + Date.now().toString(36), name, desc, icon:'fa-toolbox', img:gearImg});
+  persist(); applyCfg(); renderGearAdmin(); $('gear-form').classList.add('hidden'); toast('သိမ်းဆည်းပြီးပါပြီ');
+}
+function delGear(id){ if (!confirm('ဖျက်မလား?')) return; cfg.gear = cfg.gear.filter(g => g.id !== id); persist(); applyCfg(); renderGearAdmin(); }
+function moveGear(i, d){
+  const j = i + d; if (j < 0 || j >= cfg.gear.length) return;
+  const t = cfg.gear[i]; cfg.gear[i] = cfg.gear[j]; cfg.gear[j] = t; persist(); applyCfg(); renderGearAdmin();
 }
 
 /* ================= Extra contacts ================= */
